@@ -1,5 +1,4 @@
 import { MessageCircle, Sparkles, Wallet } from 'lucide-react';
-import profileReference from '../assets/whatsapp-profile-reference.jpg';
 
 export function HeroSection() {
   return (
@@ -44,13 +43,6 @@ export function HeroSection() {
         <div className="relative z-10 flex items-center justify-center lg:justify-end">
           <div className="relative w-full max-w-md rounded-[2rem] border border-[var(--line)] bg-[linear-gradient(180deg,rgba(20,20,22,.95),rgba(11,11,12,.98))] p-5 shadow-[0_25px_70px_rgba(0,0,0,.45)]">
             <div className="absolute inset-x-12 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(226,201,138,.75),transparent)]" />
-            <div className="rounded-[1.6rem] border border-[var(--line)] bg-[#0d0f0f] p-3">
-              <img
-                src={profileReference}
-                alt="WhatsApp business style reference"
-                className="h-auto w-full rounded-[1.3rem] object-cover"
-              />
-            </div>
             <div className="mt-5 grid gap-3 rounded-[1.4rem] border border-[var(--line)] bg-white/[0.03] p-4">
               <div className="flex items-center justify-between gap-4">
                 <div>

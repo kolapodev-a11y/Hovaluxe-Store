@@ -6,8 +6,8 @@ import {
   LogOut,
   PackagePlus,
   Pencil,
+  Settings2,
   ShoppingBag,
-  Shield,
   Trash2,
   WalletCards,
 } from 'lucide-react';
@@ -29,6 +29,16 @@ const initialSummary = {
   paidRevenue: 0,
 };
 
+const initialConfig = {
+  businessName: 'Hovaluxe',
+  whatsappNumber: '',
+  supportEmail: '',
+  deliveryFee: 2500,
+  currency: 'NGN',
+  heroNotice: 'Nationwide delivery available',
+  flutterwavePublicKey: '',
+};
+
 export function AdminPage() {
   const [session, setSession] = useLocalStorage('hovaluxe_admin_session', null);
   const [credentials, setCredentials] = useState({ email: '', password: '' });
@@ -39,6 +49,7 @@ export function AdminPage() {
   const [summary, setSummary] = useState(initialSummary);
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
+  const [storeConfig, setStoreConfig] = useState(initialConfig);
   const [orderFilter, setOrderFilter] = useState('all');
   const [modalOpen, setModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
@@ -55,17 +66,19 @@ export function AdminPage() {
 
     try {
       setLoading(true);
-      const [summaryResponse, productsResponse, ordersResponse] = await Promise.all([
+      const [summaryResponse, productsResponse, ordersResponse, configResponse] = await Promise.all([
         api.getAdminSummary(token),
         api.getAdminProducts(token),
         api.getOrders(token),
+        api.getAdminConfig(token),
       ]);
       setSummary(summaryResponse.data || initialSummary);
       setProducts(productsResponse.data || []);
       setOrders(ordersResponse.data || []);
+      setStoreConfig({ ...initialConfig, ...(configResponse.data || {}) });
       setError('');
     } catch (loadError) {
-      if (String(loadError.message || '').toLowerCase().includes('token')) {
+      if (String(loadError.message || '').toLowerCase().includes('session')) {
         setSession(null);
       }
       setError(loadError.message || 'Unable to load admin data.');
@@ -156,6 +169,20 @@ export function AdminPage() {
     }
   };
 
+  const saveConfig = async (event) => {
+    event.preventDefault();
+    try {
+      setBusy(true);
+      const response = await api.updateAdminConfig(token, storeConfig);
+      setStoreConfig({ ...initialConfig, ...(response.data || {}) });
+      setError('');
+    } catch (saveError) {
+      setError(saveError.message || 'Unable to save store settings.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
   if (!session) {
     return (
       <div className="flex min-h-screen items-center justify-center px-4 py-10">
@@ -163,7 +190,7 @@ export function AdminPage() {
           <p className="text-xs uppercase tracking-[0.24em] text-[var(--accent-green)]">Admin access</p>
           <h1 className="mt-3 font-display text-4xl text-[var(--text-primary)]">Hovaluxe dashboard</h1>
           <p className="mt-3 text-sm leading-7 text-[var(--text-secondary)]">
-            Sign in with your backend admin credentials to manage products, Flutterwave orders, and manually recorded WhatsApp sales.
+            Sign in with your backend admin credentials to manage products, store settings, Flutterwave orders, and manually recorded WhatsApp sales.
           </p>
 
           <form className="mt-6 space-y-4" onSubmit={login}>
@@ -219,6 +246,7 @@ export function AdminPage() {
             <SidebarItem label="Dashboard" active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} icon={<BarChart3 size={16} />} />
             <SidebarItem label="Products" active={activeTab === 'products'} onClick={() => setActiveTab('products')} icon={<Boxes size={16} />} />
             <SidebarItem label="Orders" active={activeTab === 'orders'} onClick={() => setActiveTab('orders')} icon={<ShoppingBag size={16} />} />
+            <SidebarItem label="Settings" active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} icon={<Settings2 size={16} />} />
           </nav>
         </aside>
 
@@ -265,6 +293,7 @@ export function AdminPage() {
             <SidebarItem label="Dashboard" active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} icon={<BarChart3 size={16} />} compact />
             <SidebarItem label="Products" active={activeTab === 'products'} onClick={() => setActiveTab('products')} icon={<Boxes size={16} />} compact />
             <SidebarItem label="Orders" active={activeTab === 'orders'} onClick={() => setActiveTab('orders')} icon={<ShoppingBag size={16} />} compact />
+            <SidebarItem label="Settings" active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} icon={<Settings2 size={16} />} compact />
           </div>
 
           {error ? (
@@ -309,12 +338,12 @@ export function AdminPage() {
                     ))}
                   </div>
                 </Panel>
-                <Panel title="Operational notes" subtitle="What this dashboard now controls">
+                <Panel title="Store settings snapshot" subtitle="Current live business settings used by the storefront">
                   <div className="space-y-3 text-sm leading-7 text-[var(--text-secondary)]">
-                    <div className="rounded-[1.2rem] border border-[var(--line)] bg-white/[0.03] p-4">Secure admin sign-in backed by the Express API.</div>
-                    <div className="rounded-[1.2rem] border border-[var(--line)] bg-white/[0.03] p-4">Catalog management for product data, status, imagery, and stock quantity.</div>
-                    <div className="rounded-[1.2rem] border border-[var(--line)] bg-white/[0.03] p-4">Flutterwave orders synced from the storefront and verified before fulfillment.</div>
-                    <div className="rounded-[1.2rem] border border-[var(--line)] bg-white/[0.03] p-4">Storekeeper-only WhatsApp sales entry for manual order reconciliation.</div>
+                    <div className="rounded-[1.2rem] border border-[var(--line)] bg-white/[0.03] p-4">Business name: <strong className="text-[var(--text-primary)]">{storeConfig.businessName}</strong></div>
+                    <div className="rounded-[1.2rem] border border-[var(--line)] bg-white/[0.03] p-4">WhatsApp: <strong className="text-[var(--text-primary)]">{storeConfig.whatsappNumber || 'Not set'}</strong></div>
+                    <div className="rounded-[1.2rem] border border-[var(--line)] bg-white/[0.03] p-4">Support email: <strong className="text-[var(--text-primary)]">{storeConfig.supportEmail || 'Not set'}</strong></div>
+                    <div className="rounded-[1.2rem] border border-[var(--line)] bg-white/[0.03] p-4">Delivery fee: <strong className="text-[var(--text-primary)]">{formatPrice(storeConfig.deliveryFee || 0)}</strong></div>
                   </div>
                 </Panel>
               </div>
@@ -422,6 +451,41 @@ export function AdminPage() {
               ))}
             </div>
           ) : null}
+
+          {!loading && activeTab === 'settings' ? (
+            <div className="mt-6">
+              <Panel title="Store settings" subtitle="These values control what customers see on the storefront and how checkout behaves.">
+                <form className="grid gap-4 md:grid-cols-2" onSubmit={saveConfig}>
+                  <Field label="Business name">
+                    <input className="input-style" value={storeConfig.businessName} onChange={(e) => setStoreConfig((prev) => ({ ...prev, businessName: e.target.value }))} />
+                  </Field>
+                  <Field label="WhatsApp number">
+                    <input className="input-style" value={storeConfig.whatsappNumber} onChange={(e) => setStoreConfig((prev) => ({ ...prev, whatsappNumber: e.target.value }))} placeholder="2348000000000" />
+                  </Field>
+                  <Field label="Support email">
+                    <input className="input-style" value={storeConfig.supportEmail} onChange={(e) => setStoreConfig((prev) => ({ ...prev, supportEmail: e.target.value }))} type="email" />
+                  </Field>
+                  <Field label="Delivery fee">
+                    <input className="input-style" value={storeConfig.deliveryFee} onChange={(e) => setStoreConfig((prev) => ({ ...prev, deliveryFee: e.target.value }))} type="number" min="0" />
+                  </Field>
+                  <Field label="Currency">
+                    <input className="input-style" value={storeConfig.currency} onChange={(e) => setStoreConfig((prev) => ({ ...prev, currency: e.target.value.toUpperCase() }))} />
+                  </Field>
+                  <Field label="Flutterwave public key">
+                    <input className="input-style" value={storeConfig.flutterwavePublicKey} onChange={(e) => setStoreConfig((prev) => ({ ...prev, flutterwavePublicKey: e.target.value }))} />
+                  </Field>
+                  <Field label="Hero notice" className="md:col-span-2">
+                    <input className="input-style" value={storeConfig.heroNotice} onChange={(e) => setStoreConfig((prev) => ({ ...prev, heroNotice: e.target.value }))} />
+                  </Field>
+                  <div className="md:col-span-2 flex justify-end">
+                    <button type="submit" disabled={busy} className="rounded-full bg-[var(--gold)] px-5 py-3 text-sm font-semibold text-[#111] disabled:opacity-70">
+                      {busy ? 'Saving...' : 'Save settings'}
+                    </button>
+                  </div>
+                </form>
+              </Panel>
+            </div>
+          ) : null}
         </div>
       </div>
 
@@ -471,5 +535,14 @@ function Panel({ title, subtitle, children }) {
       </div>
       {children}
     </div>
+  );
+}
+
+function Field({ label, children, className = '' }) {
+  return (
+    <label className={`block space-y-2 ${className}`}>
+      <span className="text-sm font-medium text-[var(--text-primary)]">{label}</span>
+      {children}
+    </label>
   );
 }

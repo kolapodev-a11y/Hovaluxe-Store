@@ -4,12 +4,26 @@ import { CheckCircle2, LoaderCircle, XCircle } from 'lucide-react';
 import { api } from '../lib/api';
 import { formatPrice, formatDateTime, titleCase } from '../utils/format';
 
+function extractParams(location) {
+  const directParams = new URLSearchParams(location.search || '');
+  const hash = window.location.hash || '';
+  const hashQuery = hash.includes('?') ? hash.split('?')[1] : '';
+  const hashParams = new URLSearchParams(hashQuery);
+
+  return {
+    transactionId:
+      directParams.get('transaction_id') ||
+      directParams.get('transactionId') ||
+      hashParams.get('transaction_id') ||
+      hashParams.get('transactionId') ||
+      '',
+    txRef: directParams.get('tx_ref') || directParams.get('txRef') || hashParams.get('tx_ref') || hashParams.get('txRef') || '',
+  };
+}
+
 export function PaymentCallbackPage() {
   const location = useLocation();
-  const params = useMemo(() => new URLSearchParams(location.search), [location.search]);
-  const transactionId = params.get('transaction_id');
-  const txRef = params.get('tx_ref');
-
+  const params = useMemo(() => extractParams(location), [location]);
   const [state, setState] = useState({ loading: true, error: '', order: null });
 
   useEffect(() => {
@@ -17,9 +31,10 @@ export function PaymentCallbackPage() {
 
     async function verify() {
       try {
-        const response = await api.verifyFlutterwavePayment({ transactionId, txRef });
+        const response = await api.verifyFlutterwavePayment(params);
         if (active) {
           setState({ loading: false, error: '', order: response.data });
+          localStorage.removeItem('hovaluxe_cart');
         }
       } catch (error) {
         if (active) {
@@ -32,7 +47,7 @@ export function PaymentCallbackPage() {
     return () => {
       active = false;
     };
-  }, [transactionId, txRef]);
+  }, [params]);
 
   return (
     <div className="flex min-h-screen items-center justify-center px-4 py-12">
@@ -54,7 +69,7 @@ export function PaymentCallbackPage() {
             <div className="text-center">
               <CheckCircle2 className="mx-auto text-emerald-300" size={42} />
               <h1 className="mt-4 font-display text-4xl text-[var(--text-primary)]">Payment received</h1>
-              <p className="mt-3 text-sm leading-7 text-[var(--text-secondary)]">Your Flutterwave payment has been confirmed and your order is now in the processing queue.</p>
+              <p className="mt-3 text-sm leading-7 text-[var(--text-secondary)]">Your payment has been confirmed and your order is now in the processing queue.</p>
             </div>
 
             <div className="mt-8 rounded-[1.5rem] border border-[var(--line)] bg-white/[0.03] p-5 text-sm text-[var(--text-secondary)]">

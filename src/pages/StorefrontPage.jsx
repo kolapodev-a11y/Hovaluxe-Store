@@ -17,13 +17,14 @@ import { ProductCard } from '../components/ProductCard';
 import { CartDrawer } from '../components/CartDrawer';
 import { CheckoutModal } from '../components/CheckoutModal';
 import { formatPrice } from '../utils/format';
-import { Badge } from '../components/Badge';
 import { api } from '../lib/api';
 
 const fallbackConfig = {
   deliveryFee: 2500,
   whatsappNumber: '',
+  supportEmail: 'hello@hovaluxe.com',
   currency: 'NGN',
+  heroNotice: 'Nationwide delivery available',
 };
 
 export function StorefrontPage() {
@@ -52,7 +53,7 @@ export function StorefrontPage() {
 
         if (!active) return;
 
-        setConfig(configResponse.data || fallbackConfig);
+        setConfig({ ...fallbackConfig, ...(configResponse.data || {}) });
         setProducts(
           (productsResponse.data || []).map((product) => ({
             ...product,
@@ -122,6 +123,11 @@ export function StorefrontPage() {
       .join(', ');
 
     if (paymentMethod === 'WhatsApp') {
+      if (!config.whatsappNumber) {
+        setNotice('WhatsApp ordering is not configured yet. Please contact the store directly.');
+        return;
+      }
+
       const orderMessage = encodeURIComponent(
         `Hello ${brand.name}, I want to place an order.\n\nName: ${customerName}\nPhone: ${customerPhone}\nEmail: ${customerEmail || 'Not provided'}\nAddress: ${shippingAddress}\nItems: ${itemsSummary}\nTotal: ${formatPrice(total)}\nNotes: ${notes || 'None'}\n\nPlease confirm availability and next steps.`,
       );
@@ -130,7 +136,12 @@ export function StorefrontPage() {
       setCart([]);
       setCheckoutOpen(false);
       setCartOpen(false);
-      setNotice('Your order details were sent to WhatsApp. The storekeeper will record and confirm the order manually.');
+      setNotice('Your order details were sent to WhatsApp. The Hovaluxe team will confirm the order manually.');
+      return;
+    }
+
+    if (!customerEmail) {
+      setNotice('Email address is required for Flutterwave payment.');
       return;
     }
 
@@ -148,7 +159,6 @@ export function StorefrontPage() {
         })),
       });
 
-      setCart([]);
       setCheckoutOpen(false);
       setCartOpen(false);
       window.location.href = response.data.paymentLink;
@@ -165,7 +175,7 @@ export function StorefrontPage() {
   return (
     <div className="min-h-screen bg-[var(--bg)] text-[var(--text-primary)]">
       <Header cartCount={cartCount} onCartOpen={() => setCartOpen(true)} />
-      <HeroSection />
+      <HeroSection notice={config.heroNotice} />
 
       {notice ? (
         <div className="mx-auto max-w-7xl px-4 pt-6 md:px-6 lg:px-8">
@@ -180,7 +190,7 @@ export function StorefrontPage() {
           <SectionTitle
             eyebrow="Luxury categories"
             title="Curated scent families and home fragrance essentials"
-            description="From signature perfumes to diffusers and humidifiers, each collection is structured for a premium retail flow."
+            description="Explore signature perfumes, daily freshness picks, roll ons, diffusers, and humidifiers designed for refined everyday living."
           />
           <div className="grid gap-4 md:grid-cols-5">
             {[
@@ -208,8 +218,8 @@ export function StorefrontPage() {
             <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
               <SectionTitle
                 eyebrow="Featured set"
-                title="Luxury pieces ready for storefront highlights"
-                description="Feature high-priority products on the landing page while the full catalog remains searchable and filterable below."
+                title="A polished selection ready for the spotlight"
+                description="Highlight your best-selling fragrances and seasonal favorites while the full catalog stays easy to browse below."
               />
               <div className="grid gap-4 md:grid-cols-3">
                 {featuredProducts.length ? featuredProducts.map((product) => (
@@ -236,9 +246,9 @@ export function StorefrontPage() {
         <section className="mx-auto max-w-7xl px-4 py-14 md:px-6 lg:px-8">
           <div className="mb-6 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <SectionTitle
-              eyebrow="Shop section"
+              eyebrow="Shop"
               title="Browse, search, and filter products quickly"
-              description="Catalog data is served by the backend, while cart state stays fast in the browser until checkout."
+              description="Find the right scent or home fragrance piece with category filters and instant product search."
             />
             <div className="w-full max-w-md">
               <input
@@ -286,18 +296,18 @@ export function StorefrontPage() {
         <section className="mx-auto grid max-w-7xl gap-6 px-4 py-6 md:px-6 lg:grid-cols-[1fr_1fr_1fr] lg:px-8">
           <InfoPanel
             icon={<MessageCircle size={18} />}
-            title="WhatsApp checkout"
-            text="Customers can send a prefilled order summary directly to your business WhatsApp. The storekeeper records these sales manually from the admin panel."
+            title="WhatsApp assistance"
+            text="Send a ready-made order summary directly to the Hovaluxe team for confirmation, stock checks, and delivery follow-up."
           />
           <InfoPanel
             icon={<Wallet size={18} />}
             title="Flutterwave payments"
-            text="Flutterwave transactions are initialized by the backend, stored in MongoDB, and verified before fulfillment begins."
+            text="Move from cart to secure payment quickly when you are ready to complete the order online."
           />
           <InfoPanel
             icon={<ShieldCheck size={18} />}
-            title="Admin controlled"
-            text="Product edits, inventory updates, and order handling live inside the operations dashboard with secure admin login."
+            title="Trusted order handling"
+            text="Orders are reviewed and fulfilled with clear delivery details, payment tracking, and store-side management."
           />
         </section>
 
@@ -306,19 +316,19 @@ export function StorefrontPage() {
             <div className="rounded-[2rem] border border-[var(--line)] bg-white/[0.03] p-6">
               <SectionTitle
                 eyebrow="Payments"
-                title="Two clear payment paths for the business workflow"
-                description="Flutterwave orders are stored and tracked online. WhatsApp orders are captured by conversation and recorded by the store team once confirmed."
+                title="Two clear ways to complete your order"
+                description="Choose the buying style that suits you best: instant secure checkout or direct chat with the store team."
               />
               <div className="space-y-4">
                 <PaymentRow
                   icon={<MessageCircle size={18} />}
                   title="WhatsApp"
-                  body="Opens a structured order message with customer details, delivery address, items, and total for manual processing."
+                  body="Opens a structured message with your details, delivery address, selected items, and total for quick order confirmation."
                 />
                 <PaymentRow
                   icon={<Wallet size={18} />}
                   title="Flutterwave"
-                  body="Creates a secure checkout session in the backend and redirects the customer to Flutterwave for payment."
+                  body="Creates a secure checkout session so you can complete payment online and receive confirmation immediately."
                 />
               </div>
             </div>
@@ -326,17 +336,17 @@ export function StorefrontPage() {
             <div className="rounded-[2rem] border border-[var(--line)] bg-[#101111] p-6">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-xs uppercase tracking-[0.24em] text-[var(--accent-green)]">Operations overview</p>
-                  <h3 className="mt-2 font-display text-3xl text-[var(--text-primary)]">Store workflow snapshot</h3>
+                  <p className="text-xs uppercase tracking-[0.24em] text-[var(--accent-green)]">Why customers love it</p>
+                  <h3 className="mt-2 font-display text-3xl text-[var(--text-primary)]">Simple, premium, and easy to trust</h3>
                 </div>
-                <Badge value="paid">API ready</Badge>
+                <PackageCheck className="text-[var(--gold)]" />
               </div>
               <div className="mt-6 space-y-3">
                 {[
-                  'Secure admin authentication for products and order management.',
-                  'MongoDB-backed catalog and order storage for Flutterwave transactions.',
-                  'Manual WhatsApp order recording to reflect storekeeper-confirmed sales.',
-                  `Delivery fee currently set to ${formatPrice(config.deliveryFee)} and managed by backend config.`,
+                  'Luxury presentation designed for fragrance shopping.',
+                  'Easy WhatsApp handoff for personalized guidance.',
+                  'Secure Flutterwave payment for direct online checkout.',
+                  `Standard delivery fee currently set to ${formatPrice(config.deliveryFee)}.`,
                 ].map((line) => (
                   <div key={line} className="rounded-[1.4rem] border border-[var(--line)] bg-white/[0.03] p-4 text-sm text-[var(--text-secondary)]">
                     {line}
@@ -351,17 +361,17 @@ export function StorefrontPage() {
           <div className="rounded-[2rem] border border-[var(--line)] bg-[linear-gradient(135deg,rgba(17,19,20,1),rgba(24,181,106,.08))] p-8 md:p-10">
             <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-center">
               <div>
-                <p className="text-xs uppercase tracking-[0.24em] text-[var(--accent-green)]">Operations</p>
-                <h3 className="mt-2 font-display text-4xl text-[var(--text-primary)]">Manage products, payments, and manual sales from one admin view</h3>
+                <p className="text-xs uppercase tracking-[0.24em] text-[var(--accent-green)]">Ready to order</p>
+                <h3 className="mt-2 font-display text-4xl text-[var(--text-primary)]">Build your cart and choose the checkout path that fits you best</h3>
                 <p className="mt-4 max-w-3xl text-sm leading-8 text-[var(--text-secondary)] md:text-base">
-                  The admin panel now handles product management, Flutterwave order tracking, and manual WhatsApp sale recording in a clean production-ready workflow.
+                  For fast support, use WhatsApp. For direct online payment, continue with Flutterwave once your cart is ready.
                 </p>
               </div>
               <a
-                href="#/admin"
+                href="#payments"
                 className="inline-flex items-center gap-2 rounded-full bg-[var(--gold)] px-6 py-3 text-sm font-semibold text-[#111]"
               >
-                Open admin panel
+                Review payment options
                 <ArrowRight size={16} />
               </a>
             </div>
@@ -389,17 +399,17 @@ export function StorefrontPage() {
       <footer className="border-t border-[var(--line)] bg-[#090a0b]">
         <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-8 text-sm text-[var(--text-secondary)] md:flex-row md:items-center md:justify-between md:px-6 lg:px-8">
           <p>
-            {brand.name} • subtotal example {formatPrice(subtotal)} • delivery {formatPrice(config.deliveryFee)}
+            {brand.name} • {config.heroNotice} • Delivery fee {formatPrice(config.deliveryFee)}
           </p>
           <div className="flex flex-wrap gap-3">
             <span className="inline-flex items-center gap-2">
-              <PackageCheck size={16} /> API-backed products
+              <PackageCheck size={16} /> Curated products
             </span>
             <span className="inline-flex items-center gap-2">
               <Sparkles size={16} /> Premium styling
             </span>
             <span className="inline-flex items-center gap-2">
-              <MessageCircle size={16} /> WhatsApp flow
+              <MessageCircle size={16} /> {config.supportEmail}
             </span>
           </div>
         </div>

@@ -7,7 +7,7 @@ import {
   Sparkles,
   Wallet,
 } from 'lucide-react';
-import { brand, resolveProductImage } from '../data/store';
+import { brand, normalizeProduct } from '../data/store';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { Header } from '../components/Header';
 import { HeroSection } from '../components/HeroSection';
@@ -54,12 +54,7 @@ export function StorefrontPage() {
         if (!active) return;
 
         setConfig({ ...fallbackConfig, ...(configResponse.data || {}) });
-        setProducts(
-          (productsResponse.data || []).map((product) => ({
-            ...product,
-            image: resolveProductImage(product),
-          })),
-        );
+        setProducts((productsResponse.data || []).map((product) => normalizeProduct(product)));
         setError('');
       } catch (loadError) {
         if (!active) return;
@@ -85,7 +80,10 @@ export function StorefrontPage() {
     });
   }, [products, activeCategory, search]);
 
-  const featuredProducts = products.filter((product) => product.featured).slice(0, 3);
+  const featuredProducts = useMemo(
+    () => products.filter((product) => product.featured).slice(0, 3),
+    [products],
+  );
 
   const addToCart = (product) => {
     setCart((currentCart) => {
@@ -170,7 +168,6 @@ export function StorefrontPage() {
   };
 
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
-  const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   return (
     <div className="min-h-screen bg-[var(--bg)] text-[var(--text-primary)]">
@@ -179,7 +176,7 @@ export function StorefrontPage() {
 
       {notice ? (
         <div className="mx-auto max-w-7xl px-4 pt-6 md:px-6 lg:px-8">
-          <div className="rounded-[1.4rem] border border-[var(--gold)]/25 bg-[var(--gold)]/10 px-4 py-3 text-sm text-[var(--text-primary)]">
+          <div className="rounded-[1.4rem] border border-[var(--gold)]/25 bg-[var(--gold)]/10 px-4 py-3 text-sm text-[var(--text-primary)] text-center">
             {notice}
           </div>
         </div>
@@ -191,8 +188,9 @@ export function StorefrontPage() {
             eyebrow="Luxury categories"
             title="Curated scent families and home fragrance essentials"
             description="Explore signature perfumes, daily freshness picks, roll ons, diffusers, and humidifiers designed for refined everyday living."
+            align="center"
           />
-          <div className="grid gap-4 md:grid-cols-5">
+          <div className="grid gap-4 grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
             {[
               ['Perfume', 'Signature scents for day and night.'],
               ['Body Spray', 'Fresh, affordable daily freshness.'],
@@ -202,7 +200,7 @@ export function StorefrontPage() {
             ].map(([title, text]) => (
               <div
                 key={title}
-                className="rounded-[1.6rem] border border-[var(--line)] bg-white/[0.03] p-5"
+                className="rounded-[1.6rem] border border-[var(--line)] bg-white/[0.03] p-5 text-center"
               >
                 <p className="text-xs uppercase tracking-[0.24em] text-[var(--accent-green)]">
                   {title}
@@ -215,55 +213,57 @@ export function StorefrontPage() {
 
         <section id="collections" className="mx-auto max-w-7xl px-4 py-8 md:px-6 lg:px-8">
           <div className="rounded-[2rem] border border-[var(--line)] bg-[linear-gradient(135deg,rgba(226,201,138,.08),rgba(24,181,106,.05))] p-6 md:p-8">
-            <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
-              <SectionTitle
-                eyebrow="Featured set"
-                title="A polished selection ready for the spotlight"
-                description="Highlight your best-selling fragrances and seasonal favorites while the full catalog stays easy to browse below."
-              />
-              <div className="grid gap-4 md:grid-cols-3">
-                {featuredProducts.length ? featuredProducts.map((product) => (
-                  <div key={product.id} className="rounded-[1.5rem] border border-[var(--line)] bg-[#101111] p-4">
-                    <img
-                      src={product.image}
-                      alt={product.name}
-                      className="h-52 w-full rounded-[1.2rem] object-cover"
-                    />
-                    <p className="mt-3 text-sm text-[var(--text-secondary)]">{product.category}</p>
-                    <p className="mt-1 text-base font-medium text-[var(--text-primary)]">{product.name}</p>
-                    <p className="mt-2 text-sm text-[var(--gold)]">{formatPrice(product.price)}</p>
-                  </div>
-                )) : (
-                  <div className="rounded-[1.5rem] border border-dashed border-[var(--line)] bg-[#101111] p-6 text-sm text-[var(--text-secondary)] md:col-span-3">
-                    Add featured products from the admin panel to highlight them here.
-                  </div>
-                )}
-              </div>
+            <SectionTitle
+              eyebrow="Featured set"
+              title="A polished selection ready for the spotlight"
+              description="Highlight your best-selling fragrances and seasonal favorites while the full catalog stays easy to browse below."
+              align="center"
+            />
+            <div className="grid gap-4 md:grid-cols-3">
+              {featuredProducts.length ? featuredProducts.map((product) => (
+                <div key={product.id} className="rounded-[1.5rem] border border-[var(--line)] bg-[#101111] p-4 text-center">
+                  <img
+                    src={product.image}
+                    alt={product.name}
+                    className="h-52 w-full rounded-[1.2rem] object-cover"
+                  />
+                  <p className="mt-3 text-sm uppercase tracking-[0.22em] text-[var(--text-secondary)]">{product.category}</p>
+                  <p className="mt-2 font-display text-3xl text-[var(--text-primary)]">{product.name}</p>
+                  <p className="mt-2 text-sm text-[var(--gold)]">{formatPrice(product.price)}</p>
+                </div>
+              )) : (
+                <div className="rounded-[1.5rem] border border-dashed border-[var(--line)] bg-[#101111] p-6 text-sm text-[var(--text-secondary)] text-center md:col-span-3">
+                  Add featured products from the admin panel to highlight them here.
+                </div>
+              )}
             </div>
           </div>
         </section>
 
         <section className="mx-auto max-w-7xl px-4 py-14 md:px-6 lg:px-8">
-          <div className="mb-6 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+          <div className="text-center">
             <SectionTitle
               eyebrow="Shop"
               title="Browse, search, and filter products quickly"
-              description="Find the right scent or home fragrance piece with category filters and instant product search."
+              description="Find the right scent or home fragrance piece with category filters, image magnification, and instant product search."
+              align="center"
             />
-            <div className="w-full max-w-md">
+            <div className="mx-auto w-full max-w-md">
               <input
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
                 placeholder="Search perfume, body spray, diffuser..."
-                className="input-style"
+                className="input-style text-center"
               />
             </div>
           </div>
 
-          <CategoryStrip
-            activeCategory={activeCategory}
-            onChangeCategory={setActiveCategory}
-          />
+          <div className="mt-6">
+            <CategoryStrip
+              activeCategory={activeCategory}
+              onChangeCategory={setActiveCategory}
+            />
+          </div>
 
           {loading ? (
             <div className="mt-8 rounded-[1.8rem] border border-[var(--line)] bg-white/[0.03] p-8 text-center text-sm text-[var(--text-secondary)]">
@@ -274,7 +274,7 @@ export function StorefrontPage() {
               {error}
             </div>
           ) : filteredProducts.length ? (
-            <div className="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+            <div className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
               {filteredProducts.map((product) => (
                 <ProductCard
                   key={product.id}
@@ -313,7 +313,7 @@ export function StorefrontPage() {
 
         <section id="payments" className="mx-auto max-w-7xl px-4 py-16 md:px-6 lg:px-8">
           <div className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
-            <div className="rounded-[2rem] border border-[var(--line)] bg-white/[0.03] p-6">
+            <div className="rounded-[2rem] border border-[var(--line)] bg-white/[0.03] p-6 text-center lg:text-left">
               <SectionTitle
                 eyebrow="Payments"
                 title="Two clear ways to complete your order"
@@ -333,13 +333,13 @@ export function StorefrontPage() {
               </div>
             </div>
 
-            <div className="rounded-[2rem] border border-[var(--line)] bg-[#101111] p-6">
-              <div className="flex items-center justify-between gap-3">
+            <div className="rounded-[2rem] border border-[var(--line)] bg-[#101111] p-6 text-center">
+              <div className="flex flex-col items-center gap-3">
+                <PackageCheck className="text-[var(--gold)]" />
                 <div>
                   <p className="text-xs uppercase tracking-[0.24em] text-[var(--accent-green)]">Why customers love it</p>
                   <h3 className="mt-2 font-display text-3xl text-[var(--text-primary)]">Simple, premium, and easy to trust</h3>
                 </div>
-                <PackageCheck className="text-[var(--gold)]" />
               </div>
               <div className="mt-6 space-y-3">
                 {[
@@ -358,18 +358,16 @@ export function StorefrontPage() {
         </section>
 
         <section className="mx-auto max-w-7xl px-4 pb-20 md:px-6 lg:px-8">
-          <div className="rounded-[2rem] border border-[var(--line)] bg-[linear-gradient(135deg,rgba(17,19,20,1),rgba(24,181,106,.08))] p-8 md:p-10">
-            <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-center">
-              <div>
-                <p className="text-xs uppercase tracking-[0.24em] text-[var(--accent-green)]">Ready to order</p>
-                <h3 className="mt-2 font-display text-4xl text-[var(--text-primary)]">Build your cart and choose the checkout path that fits you best</h3>
-                <p className="mt-4 max-w-3xl text-sm leading-8 text-[var(--text-secondary)] md:text-base">
-                  For fast support, use WhatsApp. For direct online payment, continue with Flutterwave once your cart is ready.
-                </p>
-              </div>
+          <div className="rounded-[2rem] border border-[var(--line)] bg-[linear-gradient(135deg,rgba(17,19,20,1),rgba(24,181,106,.08))] p-8 text-center md:p-10">
+            <div className="mx-auto max-w-4xl">
+              <p className="text-xs uppercase tracking-[0.24em] text-[var(--accent-green)]">Ready to order</p>
+              <h3 className="mt-2 font-display text-4xl text-[var(--text-primary)]">Build your cart and choose the checkout path that fits you best</h3>
+              <p className="mt-4 text-sm leading-8 text-[var(--text-secondary)] md:text-base">
+                For fast support, use WhatsApp inside checkout. For direct online payment, continue with Flutterwave once your cart is ready.
+              </p>
               <a
                 href="#payments"
-                className="inline-flex items-center gap-2 rounded-full bg-[var(--gold)] px-6 py-3 text-sm font-semibold text-[#111]"
+                className="mt-6 inline-flex items-center gap-2 rounded-full bg-[var(--gold)] px-6 py-3 text-sm font-semibold text-[#111]"
               >
                 Review payment options
                 <ArrowRight size={16} />
@@ -397,11 +395,11 @@ export function StorefrontPage() {
       />
 
       <footer className="border-t border-[var(--line)] bg-[#090a0b]">
-        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-8 text-sm text-[var(--text-secondary)] md:flex-row md:items-center md:justify-between md:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-8 text-center text-sm text-[var(--text-secondary)] md:px-6 lg:px-8 xl:flex-row xl:items-center xl:justify-between xl:text-left">
           <p>
             {brand.name} • {config.heroNotice} • Delivery fee {formatPrice(config.deliveryFee)}
           </p>
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap justify-center gap-3 xl:justify-end">
             <span className="inline-flex items-center gap-2">
               <PackageCheck size={16} /> Curated products
             </span>
@@ -420,7 +418,7 @@ export function StorefrontPage() {
 
 function InfoPanel({ icon, title, text }) {
   return (
-    <div className="rounded-[1.6rem] border border-[var(--line)] bg-white/[0.03] p-5">
+    <div className="rounded-[1.6rem] border border-[var(--line)] bg-white/[0.03] p-5 text-center">
       <div className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-[var(--gold)]/10 text-[var(--gold)]">
         {icon}
       </div>
@@ -432,8 +430,8 @@ function InfoPanel({ icon, title, text }) {
 
 function PaymentRow({ icon, title, body }) {
   return (
-    <div className="flex gap-4 rounded-[1.4rem] border border-[var(--line)] bg-[#111314] p-4">
-      <div className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-[var(--gold)]/10 text-[var(--gold)]">
+    <div className="flex gap-4 rounded-[1.4rem] border border-[var(--line)] bg-[#111314] p-4 text-left">
+      <div className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--gold)]/10 text-[var(--gold)]">
         {icon}
       </div>
       <div>

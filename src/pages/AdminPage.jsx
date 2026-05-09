@@ -7,18 +7,21 @@ import {
   PackagePlus,
   Pencil,
   Settings2,
+  Shield,
   ShoppingBag,
   Trash2,
   WalletCards,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { brand } from '../data/store';
+import { brand, getProductImages } from '../data/store';
 import { useLocalStorage } from '../hooks/useLocalStorage';
+import { useGoogleAdminAuth } from '../hooks/useGoogleAdminAuth';
 import { formatDateTime, formatPrice, titleCase } from '../utils/format';
 import { Badge } from '../components/Badge';
 import { ProductFormModal } from '../components/ProductFormModal';
 import { StatCard } from '../components/StatCard';
 import { WhatsAppOrderModal } from '../components/WhatsAppOrderModal';
+import { GoogleAdminButton } from '../components/GoogleAdminButton';
 import { api } from '../lib/api';
 
 const initialSummary = {
@@ -56,7 +59,22 @@ export function AdminPage() {
   const [recordModalOpen, setRecordModalOpen] = useState(false);
   const [savingOrderId, setSavingOrderId] = useState('');
 
+  const {
+    googleAdmin,
+    setGoogleAdmin,
+    isAdmin,
+    signOut,
+    configuredAdminEmail,
+    hasGoogleClientId,
+  } = useGoogleAdminAuth();
+
   const token = session?.token;
+
+  useEffect(() => {
+    if (googleAdmin?.email) {
+      setCredentials((prev) => ({ ...prev, email: prev.email || googleAdmin.email }));
+    }
+  }, [googleAdmin?.email]);
 
   const loadDashboard = async () => {
     if (!token) {
@@ -183,6 +201,68 @@ export function AdminPage() {
     }
   };
 
+  const handleFullSignOut = () => {
+    setSession(null);
+    signOut();
+  };
+
+  if (!hasGoogleClientId || !configuredAdminEmail) {
+    return (
+      <div className="flex min-h-screen items-center justify-center px-4 py-10">
+        <div className="w-full max-w-2xl rounded-[2rem] border border-[var(--line)] bg-[#0c0d0d] p-8 text-center shadow-[0_24px_90px_rgba(0,0,0,.48)]">
+          <p className="text-xs uppercase tracking-[0.24em] text-[var(--accent-green)]">Admin setup required</p>
+          <h1 className="mt-3 font-display text-4xl text-[var(--text-primary)]">Google admin visibility is not configured yet</h1>
+          <p className="mt-4 text-sm leading-7 text-[var(--text-secondary)]">
+            Add <code>VITE_GOOGLE_CLIENT_ID</code> and <code>VITE_ADMIN_EMAIL</code> to your environment so the admin panel can stay hidden until the allowed Google account signs in.
+          </p>
+          <Link to="/" className="mt-6 inline-flex rounded-full border border-[var(--line)] px-5 py-3 text-sm text-[var(--text-primary)]">
+            ← Back to storefront
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return (
+      <div className="flex min-h-screen items-center justify-center px-4 py-10">
+        <div className="w-full max-w-2xl rounded-[2rem] border border-[var(--line)] bg-[#0c0d0d] p-8 text-center shadow-[0_24px_90px_rgba(0,0,0,.48)]">
+          <p className="text-xs uppercase tracking-[0.24em] text-[var(--accent-green)]">Protected admin access</p>
+          <h1 className="mt-3 font-display text-4xl text-[var(--text-primary)]">Google verification required</h1>
+          <p className="mt-4 text-sm leading-7 text-[var(--text-secondary)]">
+            The admin panel only becomes available when the allowed Google account signs in. After that, the existing backend admin login still protects dashboard actions.
+          </p>
+
+          <div className="mt-6 flex justify-center">
+            <GoogleAdminButton
+              onAuthenticated={(profile) => {
+                setGoogleAdmin(profile);
+                setCredentials((prev) => ({ ...prev, email: profile.email }));
+                setError('');
+              }}
+              onUnauthorized={(_, message) => setError(message)}
+              width={320}
+              theme="outline"
+              text="signin_with"
+            />
+          </div>
+
+          <p className="mt-4 text-sm text-[var(--text-secondary)]">Allowed admin email: {configuredAdminEmail}</p>
+
+          {error ? (
+            <div className="mt-5 rounded-2xl border border-rose-500/25 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+              {error}
+            </div>
+          ) : null}
+
+          <Link to="/" className="mt-6 inline-flex rounded-full border border-[var(--line)] px-5 py-3 text-sm text-[var(--text-primary)]">
+            ← Back to storefront
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   if (!session) {
     return (
       <div className="flex min-h-screen items-center justify-center px-4 py-10">
@@ -190,7 +270,7 @@ export function AdminPage() {
           <p className="text-xs uppercase tracking-[0.24em] text-[var(--accent-green)]">Admin access</p>
           <h1 className="mt-3 font-display text-4xl text-[var(--text-primary)]">Hovaluxe dashboard</h1>
           <p className="mt-3 text-sm leading-7 text-[var(--text-secondary)]">
-            Sign in with your backend admin credentials to manage products, store settings, Flutterwave orders, and manually recorded WhatsApp sales.
+            Google verification passed for <span className="text-[var(--text-primary)]">{googleAdmin?.email}</span>. Sign in with your backend admin credentials to manage products, store settings, Flutterwave orders, and manually recorded WhatsApp sales.
           </p>
 
           <form className="mt-6 space-y-4" onSubmit={login}>
@@ -226,9 +306,19 @@ export function AdminPage() {
             </button>
           </form>
 
-          <Link to="/" className="mt-5 inline-flex text-sm text-[var(--accent-green)]">
-            ← Back to storefront
-          </Link>
+          <div className="mt-5 flex flex-wrap gap-3">
+            <button
+              type="button"
+              onClick={handleFullSignOut}
+              className="inline-flex items-center gap-2 rounded-full border border-[var(--line)] px-5 py-3 text-sm text-[var(--text-primary)]"
+            >
+              <LogOut size={16} />
+              Sign out Google admin
+            </button>
+            <Link to="/" className="inline-flex text-sm text-[var(--accent-green)] items-center">
+              ← Back to storefront
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -255,7 +345,8 @@ export function AdminPage() {
             <div>
               <p className="text-xs uppercase tracking-[0.24em] text-[var(--accent-green)]">Admin panel</p>
               <h1 className="mt-2 font-display text-4xl text-[var(--text-primary)]">Manage the storefront</h1>
-              <p className="mt-2 text-sm text-[var(--text-secondary)]">Signed in as {session.admin?.name || brand.name}</p>
+              <p className="mt-2 text-sm text-[var(--text-secondary)]">Signed in as {session.admin?.name || googleAdmin?.name || brand.name}</p>
+              <p className="mt-1 text-sm text-[var(--text-secondary)]">Verified Google admin: {googleAdmin?.email}</p>
             </div>
             <div className="flex flex-wrap gap-3">
               <button
@@ -280,7 +371,7 @@ export function AdminPage() {
               </button>
               <button
                 type="button"
-                onClick={() => setSession(null)}
+                onClick={handleFullSignOut}
                 className="inline-flex items-center gap-2 rounded-full border border-[var(--line)] px-5 py-3 text-sm text-[var(--text-primary)]"
               >
                 <LogOut size={16} />
@@ -352,33 +443,37 @@ export function AdminPage() {
 
           {!loading && activeTab === 'products' ? (
             <div className="mt-6 space-y-4">
-              {products.map((product) => (
-                <div key={product.id} className="grid gap-4 rounded-[1.5rem] border border-[var(--line)] bg-white/[0.03] p-4 lg:grid-cols-[120px_1fr_auto] lg:items-center">
-                  <img src={product.image} alt={product.name} className="h-28 w-full rounded-[1rem] object-cover lg:w-[120px]" />
-                  <div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h3 className="font-display text-3xl text-[var(--text-primary)]">{product.name}</h3>
-                      <Badge value={product.status} />
-                      {product.featured ? <Badge value="featured">Featured</Badge> : null}
+              {products.map((product) => {
+                const gallery = getProductImages(product);
+                return (
+                  <div key={product.id} className="grid gap-4 rounded-[1.5rem] border border-[var(--line)] bg-white/[0.03] p-4 lg:grid-cols-[120px_1fr_auto] lg:items-center">
+                    <img src={gallery[0]} alt={product.name} className="h-28 w-full rounded-[1rem] object-cover lg:w-[120px]" />
+                    <div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h3 className="font-display text-3xl text-[var(--text-primary)]">{product.name}</h3>
+                        <Badge value={product.status} />
+                        {product.featured ? <Badge value="featured">Featured</Badge> : null}
+                        <span className="rounded-full border border-[var(--line)] px-3 py-1 text-xs text-[var(--text-secondary)]">{gallery.length} image{gallery.length > 1 ? 's' : ''}</span>
+                      </div>
+                      <p className="mt-2 text-sm text-[var(--text-secondary)]">{product.category} • {product.volume || 'Standard size'} • SKU {product.sku || '—'}</p>
+                      <p className="mt-2 text-sm leading-7 text-[var(--text-secondary)]">{product.description}</p>
+                      <div className="mt-3 flex flex-wrap gap-4 text-sm text-[var(--text-secondary)]">
+                        <span>Price: <strong className="text-[var(--gold)]">{formatPrice(product.price)}</strong></span>
+                        <span>Inventory: <strong className="text-[var(--text-primary)]">{product.inventoryQuantity}</strong></span>
+                        <span>Visibility: <strong className="text-[var(--text-primary)]">{product.isActive ? 'Visible' : 'Hidden'}</strong></span>
+                      </div>
                     </div>
-                    <p className="mt-2 text-sm text-[var(--text-secondary)]">{product.category} • {product.volume || 'Standard size'} • SKU {product.sku || '—'}</p>
-                    <p className="mt-2 text-sm leading-7 text-[var(--text-secondary)]">{product.description}</p>
-                    <div className="mt-3 flex flex-wrap gap-4 text-sm text-[var(--text-secondary)]">
-                      <span>Price: <strong className="text-[var(--gold)]">{formatPrice(product.price)}</strong></span>
-                      <span>Inventory: <strong className="text-[var(--text-primary)]">{product.inventoryQuantity}</strong></span>
-                      <span>Visibility: <strong className="text-[var(--text-primary)]">{product.isActive ? 'Visible' : 'Hidden'}</strong></span>
+                    <div className="flex flex-wrap gap-3 lg:justify-end">
+                      <button type="button" onClick={() => { setEditingProduct(product); setModalOpen(true); }} className="inline-flex items-center gap-2 rounded-full border border-[var(--line)] px-4 py-2 text-sm text-[var(--text-primary)]">
+                        <Pencil size={14} /> Edit
+                      </button>
+                      <button type="button" onClick={() => deleteProduct(product.id)} className="inline-flex items-center gap-2 rounded-full border border-rose-500/30 px-4 py-2 text-sm text-rose-200">
+                        <Trash2 size={14} /> Delete
+                      </button>
                     </div>
                   </div>
-                  <div className="flex flex-wrap gap-3 lg:justify-end">
-                    <button type="button" onClick={() => { setEditingProduct(product); setModalOpen(true); }} className="inline-flex items-center gap-2 rounded-full border border-[var(--line)] px-4 py-2 text-sm text-[var(--text-primary)]">
-                      <Pencil size={14} /> Edit
-                    </button>
-                    <button type="button" onClick={() => deleteProduct(product.id)} className="inline-flex items-center gap-2 rounded-full border border-rose-500/30 px-4 py-2 text-sm text-rose-200">
-                      <Trash2 size={14} /> Delete
-                    </button>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           ) : null}
 

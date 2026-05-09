@@ -24,6 +24,7 @@ import { CartDrawer } from '../components/CartDrawer';
 import { CheckoutModal } from '../components/CheckoutModal';
 import { formatPrice } from '../utils/format';
 import { api } from '../lib/api';
+import { useAuth } from '../context/AuthContext';
 
 const fallbackConfig = {
   deliveryFee: 2500,
@@ -62,6 +63,7 @@ const categoryCards = [
 ];
 
 export function StorefrontPage() {
+  const { token } = useAuth();
   const [config, setConfig] = useState(fallbackConfig);
   const [products, setProducts] = useState([]);
   const [cart, setCart] = useLocalStorage('hovaluxe_cart', []);
@@ -104,6 +106,12 @@ export function StorefrontPage() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!cart.length && checkoutOpen) {
+      setCheckoutOpen(false);
+    }
+  }, [cart.length, checkoutOpen]);
+
   const filteredProducts = useMemo(() => {
     return products.filter((product) => {
       const categoryMatch = activeCategory === 'All' || product.category === activeCategory;
@@ -135,6 +143,7 @@ export function StorefrontPage() {
       return [...currentCart, { ...product, quantity: 1 }];
     });
     setCartOpen(true);
+    setNotice(`${product.name} was added to your cart.`);
   };
 
   const updateQuantity = (id, nextQuantity) => {
@@ -152,6 +161,16 @@ export function StorefrontPage() {
 
   const removeFromCart = (id) =>
     setCart((currentCart) => currentCart.filter((item) => item.id !== id));
+
+  const openCheckoutFlow = () => {
+    if (!cart.length) {
+      setNotice('Add at least one product to the cart before proceeding to checkout.');
+      setCartOpen(true);
+      return;
+    }
+
+    setCheckoutOpen(true);
+  };
 
   const placeOrder = async ({ customerName, customerPhone, customerEmail, shippingAddress, notes, paymentMethod, total }) => {
     const itemsSummary = cart
@@ -183,17 +202,20 @@ export function StorefrontPage() {
 
     try {
       setSubmitting(true);
-      const response = await api.createFlutterwaveCheckout({
-        customerName,
-        customerPhone,
-        customerEmail,
-        shippingAddress,
-        notes,
-        items: cart.map((item) => ({
-          productId: item.id,
-          quantity: item.quantity,
-        })),
-      });
+      const response = await api.createFlutterwaveCheckout(
+        {
+          customerName,
+          customerPhone,
+          customerEmail,
+          shippingAddress,
+          notes,
+          items: cart.map((item) => ({
+            productId: item.id,
+            quantity: item.quantity,
+          })),
+        },
+        token,
+      );
 
       setCheckoutOpen(false);
       setCartOpen(false);
@@ -207,8 +229,8 @@ export function StorefrontPage() {
 
   return (
     <div className="min-h-screen bg-[var(--bg)] text-[var(--text-primary)]">
-      <Header cartCount={cartCount} onCartOpen={() => setCartOpen(true)} />
-      <HeroSection notice={config.heroNotice} />
+      <Header cartCount={cartCount} onCartOpen={() => setCartOpen(true)} canAccessCheckout={cartCount > 0} />
+      <HeroSection notice={config.heroNotice} cartCount={cartCount} onCartOpen={() => setCartOpen(true)} />
 
       {notice ? (
         <div className="mx-auto max-w-7xl px-4 pt-6 md:px-6 lg:px-8">
@@ -344,84 +366,86 @@ export function StorefrontPage() {
           />
         </section>
 
-        <section id="payments" className="mx-auto max-w-7xl px-4 py-16 md:px-6 lg:px-8">
-          <div className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
-            <div className="luxe-panel rounded-[2rem] p-6 lg:p-7">
-              <SectionTitle
-                eyebrow="Payments"
-                title="Checkout your way"
-                description="Choose direct support on WhatsApp or secure payment with Flutterwave."
-              />
-              <div className="space-y-4">
-                <PaymentRow
-                  icon={<MessageCircle size={18} />}
-                  title="WhatsApp order"
-                  body="Opens a structured order message with your customer details, selected items, and delivery address."
+        {cartCount > 0 ? (
+          <section id="payments" className="mx-auto max-w-7xl px-4 py-16 md:px-6 lg:px-8">
+            <div className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
+              <div className="luxe-panel rounded-[2rem] p-6 lg:p-7">
+                <SectionTitle
+                  eyebrow="Payments"
+                  title="Checkout your way"
+                  description="Payment options are shown only after products have been added to the cart."
                 />
-                <PaymentRow
-                  icon={<CreditCard size={18} />}
-                  title="Flutterwave"
-                  body="Creates a secure checkout session for online payment and order confirmation."
-                />
-              </div>
-
-              <div className="mt-6 rounded-[1.5rem] border border-white/8 bg-white/[0.03] p-5 text-sm text-[var(--text-secondary)]">
-                <div className="flex items-start gap-3">
-                  <Sparkles size={18} className="mt-0.5 text-[var(--gold)]" />
-                  <p>
-                    Delivery fee is currently set to <span className="text-[var(--gold-soft)]">{formatPrice(config.deliveryFee)}</span>. Customers can review this before completing checkout.
-                  </p>
+                <div className="space-y-4">
+                  <PaymentRow
+                    icon={<MessageCircle size={18} />}
+                    title="WhatsApp order"
+                    body="Opens a structured order message with your customer details, selected items, and delivery address."
+                  />
+                  <PaymentRow
+                    icon={<CreditCard size={18} />}
+                    title="Flutterwave"
+                    body="Creates a secure checkout session for online payment and order confirmation."
+                  />
                 </div>
-              </div>
-            </div>
 
-            <div className="rounded-[2rem] border border-[var(--line)] bg-[#101111] p-6 shadow-[0_24px_70px_rgba(0,0,0,.38)] lg:p-7">
-              <div className="flex items-center justify-between gap-4">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.24em] text-[var(--accent-green)]">Active checkout</p>
-                  <h3 className="mt-2 font-display text-4xl text-[var(--text-primary)]">Ready to complete an order</h3>
-                </div>
-                <PackageCheck className="text-[var(--gold)]" size={24} />
-              </div>
-
-              <div className="mt-6 grid gap-4 rounded-[1.5rem] border border-white/8 bg-white/[0.03] p-5 sm:grid-cols-3">
-                <SummaryTile label="Items" value={String(cartCount)} />
-                <SummaryTile label="Subtotal" value={formatPrice(cartSubtotal)} />
-                <SummaryTile label="Estimated total" value={formatPrice(checkoutEstimate)} />
-              </div>
-
-              <div className="mt-6 space-y-3">
-                {[
-                  'Customer details collected in a focused checkout flow.',
-                  'WhatsApp and Flutterwave stay available in the same order experience.',
-                  'Payment callback route remains ready for verified orders.',
-                ].map((line) => (
-                  <div key={line} className="rounded-[1.2rem] border border-white/8 bg-white/[0.03] px-4 py-3 text-sm text-[var(--text-secondary)]">
-                    {line}
+                <div className="mt-6 rounded-[1.5rem] border border-white/8 bg-white/[0.03] p-5 text-sm text-[var(--text-secondary)]">
+                  <div className="flex items-start gap-3">
+                    <Sparkles size={18} className="mt-0.5 text-[var(--gold)]" />
+                    <p>
+                      Delivery fee is currently set to <span className="text-[var(--gold-soft)]">{formatPrice(config.deliveryFee)}</span>. Customers can review this before completing checkout.
+                    </p>
                   </div>
-                ))}
+                </div>
               </div>
 
-              <div className="mt-6 flex flex-wrap gap-3">
-                <button
-                  type="button"
-                  onClick={() => setCheckoutOpen(true)}
-                  className="inline-flex min-h-13 items-center justify-center gap-2 rounded-full bg-[linear-gradient(135deg,var(--gold-soft),var(--gold))] px-6 py-3 text-sm font-semibold text-[#1b140b] shadow-[0_10px_24px_rgba(216,192,122,0.18)] transition hover:-translate-y-0.5"
-                >
-                  Open checkout
-                  <ArrowRight size={16} />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setCartOpen(true)}
-                  className="inline-flex min-h-13 items-center justify-center gap-2 rounded-full border border-[var(--line)] bg-white/5 px-6 py-3 text-sm font-semibold text-[var(--text-primary)] transition hover:-translate-y-0.5 hover:border-[var(--gold)]/35"
-                >
-                  Review cart
-                </button>
+              <div className="rounded-[2rem] border border-[var(--line)] bg-[#101111] p-6 shadow-[0_24px_70px_rgba(0,0,0,.38)] lg:p-7">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.24em] text-[var(--accent-green)]">Active checkout</p>
+                    <h3 className="mt-2 font-display text-4xl text-[var(--text-primary)]">Ready to complete an order</h3>
+                  </div>
+                  <PackageCheck className="text-[var(--gold)]" size={24} />
+                </div>
+
+                <div className="mt-6 grid gap-4 rounded-[1.5rem] border border-white/8 bg-white/[0.03] p-5 sm:grid-cols-3">
+                  <SummaryTile label="Items" value={String(cartCount)} />
+                  <SummaryTile label="Subtotal" value={formatPrice(cartSubtotal)} />
+                  <SummaryTile label="Estimated total" value={formatPrice(checkoutEstimate)} />
+                </div>
+
+                <div className="mt-6 space-y-3">
+                  {[
+                    'Customer details are collected inside a responsive mobile-friendly checkout flow.',
+                    'WhatsApp and Flutterwave stay available in the same order experience.',
+                    'Payment only appears after products are added to the cart.',
+                  ].map((line) => (
+                    <div key={line} className="rounded-[1.2rem] border border-white/8 bg-white/[0.03] px-4 py-3 text-sm text-[var(--text-secondary)]">
+                      {line}
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-6 flex flex-wrap gap-3">
+                  <button
+                    type="button"
+                    onClick={openCheckoutFlow}
+                    className="inline-flex min-h-13 items-center justify-center gap-2 rounded-full bg-[linear-gradient(135deg,var(--gold-soft),var(--gold))] px-6 py-3 text-sm font-semibold text-[#1b140b] shadow-[0_10px_24px_rgba(216,192,122,0.18)] transition hover:-translate-y-0.5"
+                  >
+                    Open checkout
+                    <ArrowRight size={16} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCartOpen(true)}
+                    className="inline-flex min-h-13 items-center justify-center gap-2 rounded-full border border-[var(--line)] bg-white/5 px-6 py-3 text-sm font-semibold text-[var(--text-primary)] transition hover:-translate-y-0.5 hover:border-[var(--gold)]/35"
+                  >
+                    Review cart
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        </section>
+          </section>
+        ) : null}
       </main>
 
       <CartDrawer
@@ -430,7 +454,7 @@ export function StorefrontPage() {
         onClose={() => setCartOpen(false)}
         onUpdateQuantity={updateQuantity}
         onRemove={removeFromCart}
-        onCheckout={() => setCheckoutOpen(true)}
+        onCheckout={openCheckoutFlow}
       />
       <CheckoutModal
         open={checkoutOpen}
@@ -474,8 +498,14 @@ export function StorefrontPage() {
           <div>
             <h3 className="font-display text-3xl text-[var(--gold-soft)]">Payments</h3>
             <div className="mt-4 space-y-3 text-sm text-[var(--text-secondary)]">
-              <a href="#payments" className="block transition hover:text-[var(--text-primary)]">WhatsApp</a>
-              <a href="#payments" className="block transition hover:text-[var(--text-primary)]">Flutterwave</a>
+              {cartCount > 0 ? (
+                <>
+                  <a href="#payments" className="block transition hover:text-[var(--text-primary)]">WhatsApp</a>
+                  <a href="#payments" className="block transition hover:text-[var(--text-primary)]">Flutterwave</a>
+                </>
+              ) : (
+                <p>Add a product to cart to unlock checkout options.</p>
+              )}
               <p>{config.supportEmail}</p>
             </div>
           </div>

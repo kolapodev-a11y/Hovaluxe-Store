@@ -7,21 +7,19 @@ import {
   PackagePlus,
   Pencil,
   Settings2,
-  Shield,
+  ShieldAlert,
   ShoppingBag,
   Trash2,
   WalletCards,
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { brand, getProductImages } from '../data/store';
-import { useLocalStorage } from '../hooks/useLocalStorage';
-import { useGoogleAdminAuth } from '../hooks/useGoogleAdminAuth';
+import { useAuth } from '../context/AuthContext';
 import { formatDateTime, formatPrice, titleCase } from '../utils/format';
 import { Badge } from '../components/Badge';
 import { ProductFormModal } from '../components/ProductFormModal';
 import { StatCard } from '../components/StatCard';
 import { WhatsAppOrderModal } from '../components/WhatsAppOrderModal';
-import { GoogleAdminButton } from '../components/GoogleAdminButton';
 import { api } from '../lib/api';
 
 const initialSummary = {
@@ -43,8 +41,7 @@ const initialConfig = {
 };
 
 export function AdminPage() {
-  const [session, setSession] = useLocalStorage('hovaluxe_admin_session', null);
-  const [credentials, setCredentials] = useState({ email: '', password: '' });
+  const { session, token, user, isAuthenticated, isAdmin, logout } = useAuth();
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -59,25 +56,8 @@ export function AdminPage() {
   const [recordModalOpen, setRecordModalOpen] = useState(false);
   const [savingOrderId, setSavingOrderId] = useState('');
 
-  const {
-    googleAdmin,
-    setGoogleAdmin,
-    isAdmin,
-    signOut,
-    configuredAdminEmail,
-    hasGoogleClientId,
-  } = useGoogleAdminAuth();
-
-  const token = session?.token;
-
-  useEffect(() => {
-    if (googleAdmin?.email) {
-      setCredentials((prev) => ({ ...prev, email: prev.email || googleAdmin.email }));
-    }
-  }, [googleAdmin?.email]);
-
   const loadDashboard = async () => {
-    if (!token) {
+    if (!token || !isAdmin) {
       setLoading(false);
       return;
     }
@@ -96,10 +76,11 @@ export function AdminPage() {
       setStoreConfig({ ...initialConfig, ...(configResponse.data || {}) });
       setError('');
     } catch (loadError) {
-      if (String(loadError.message || '').toLowerCase().includes('session')) {
-        setSession(null);
+      const message = loadError.message || 'Unable to load admin data.';
+      setError(message);
+      if (/authorization|required|expired|invalid|unauthorized|forbidden/i.test(message)) {
+        logout();
       }
-      setError(loadError.message || 'Unable to load admin data.');
     } finally {
       setLoading(false);
     }
@@ -107,26 +88,12 @@ export function AdminPage() {
 
   useEffect(() => {
     loadDashboard();
-  }, [token]);
+  }, [token, isAdmin]);
 
   const filteredOrders = useMemo(() => {
     if (orderFilter === 'all') return orders;
     return orders.filter((order) => order.paymentMethod === orderFilter);
   }, [orders, orderFilter]);
-
-  const login = async (event) => {
-    event.preventDefault();
-    try {
-      setBusy(true);
-      const response = await api.adminLogin(credentials);
-      setSession({ token: response.token, admin: response.admin });
-      setError('');
-    } catch (loginError) {
-      setError(loginError.message || 'Unable to sign in.');
-    } finally {
-      setBusy(false);
-    }
-  };
 
   const saveProduct = async (product) => {
     try {
@@ -201,123 +168,29 @@ export function AdminPage() {
     }
   };
 
-  const handleFullSignOut = () => {
-    setSession(null);
-    signOut();
-  };
-
-  if (!hasGoogleClientId || !configuredAdminEmail) {
-    return (
-      <div className="flex min-h-screen items-center justify-center px-4 py-10">
-        <div className="w-full max-w-2xl rounded-[2rem] border border-[var(--line)] bg-[#0c0d0d] p-8 text-center shadow-[0_24px_90px_rgba(0,0,0,.48)]">
-          <p className="text-xs uppercase tracking-[0.24em] text-[var(--accent-green)]">Admin setup required</p>
-          <h1 className="mt-3 font-display text-4xl text-[var(--text-primary)]">Google admin visibility is not configured yet</h1>
-          <p className="mt-4 text-sm leading-7 text-[var(--text-secondary)]">
-            Add <code>VITE_GOOGLE_CLIENT_ID</code> and <code>VITE_ADMIN_EMAIL</code> to your environment so the admin panel can stay hidden until the allowed Google account signs in.
-          </p>
-          <Link to="/" className="mt-6 inline-flex rounded-full border border-[var(--line)] px-5 py-3 text-sm text-[var(--text-primary)]">
-            ← Back to storefront
-          </Link>
-        </div>
-      </div>
-    );
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace state={{ from: '/admin' }} />;
   }
 
   if (!isAdmin) {
     return (
       <div className="flex min-h-screen items-center justify-center px-4 py-10">
         <div className="w-full max-w-2xl rounded-[2rem] border border-[var(--line)] bg-[#0c0d0d] p-8 text-center shadow-[0_24px_90px_rgba(0,0,0,.48)]">
-          <p className="text-xs uppercase tracking-[0.24em] text-[var(--accent-green)]">Protected admin access</p>
-          <h1 className="mt-3 font-display text-4xl text-[var(--text-primary)]">Google verification required</h1>
-          <p className="mt-4 text-sm leading-7 text-[var(--text-secondary)]">
-            The admin panel only becomes available when the allowed Google account signs in. After that, the existing backend admin login still protects dashboard actions.
-          </p>
-
-          <div className="mt-6 flex justify-center">
-            <GoogleAdminButton
-              onAuthenticated={(profile) => {
-                setGoogleAdmin(profile);
-                setCredentials((prev) => ({ ...prev, email: profile.email }));
-                setError('');
-              }}
-              onUnauthorized={(_, message) => setError(message)}
-              width={320}
-              theme="outline"
-              text="signin_with"
-            />
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-rose-500/12 text-rose-300">
+            <ShieldAlert size={24} />
           </div>
-
-          <p className="mt-4 text-sm text-[var(--text-secondary)]">Allowed admin email: {configuredAdminEmail}</p>
-
-          {error ? (
-            <div className="mt-5 rounded-2xl border border-rose-500/25 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
-              {error}
-            </div>
-          ) : null}
-
-          <Link to="/" className="mt-6 inline-flex rounded-full border border-[var(--line)] px-5 py-3 text-sm text-[var(--text-primary)]">
-            ← Back to storefront
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
-  if (!session) {
-    return (
-      <div className="flex min-h-screen items-center justify-center px-4 py-10">
-        <div className="w-full max-w-md rounded-[2rem] border border-[var(--line)] bg-[#0c0d0d] p-8 shadow-[0_24px_90px_rgba(0,0,0,.48)]">
-          <p className="text-xs uppercase tracking-[0.24em] text-[var(--accent-green)]">Admin access</p>
-          <h1 className="mt-3 font-display text-4xl text-[var(--text-primary)]">Hovaluxe dashboard</h1>
-          <p className="mt-3 text-sm leading-7 text-[var(--text-secondary)]">
-            Google verification passed for <span className="text-[var(--text-primary)]">{googleAdmin?.email}</span>. Sign in with your backend admin credentials to manage products, store settings, Flutterwave orders, and manually recorded WhatsApp sales.
+          <p className="mt-5 text-xs uppercase tracking-[0.24em] text-[var(--accent-green)]">Restricted area</p>
+          <h1 className="mt-3 font-display text-4xl text-[var(--text-primary)]">Admin access only</h1>
+          <p className="mt-4 text-sm leading-7 text-[var(--text-secondary)]">
+            You are signed in as <span className="text-[var(--text-primary)]">{session?.user?.email}</span>, but this account does not have admin access.
           </p>
-
-          <form className="mt-6 space-y-4" onSubmit={login}>
-            <label className="block space-y-2">
-              <span className="text-sm text-[var(--text-primary)]">Admin email</span>
-              <input
-                className="input-style"
-                value={credentials.email}
-                onChange={(e) => setCredentials((prev) => ({ ...prev, email: e.target.value }))}
-              />
-            </label>
-            <label className="block space-y-2">
-              <span className="text-sm text-[var(--text-primary)]">Password</span>
-              <input
-                type="password"
-                className="input-style"
-                value={credentials.password}
-                onChange={(e) => setCredentials((prev) => ({ ...prev, password: e.target.value }))}
-              />
-            </label>
-            {error ? (
-              <div className="rounded-2xl border border-rose-500/25 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
-                {error}
-              </div>
-            ) : null}
-            <button
-              type="submit"
-              disabled={busy}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[var(--gold)] px-5 py-3 text-sm font-semibold text-[#111] disabled:opacity-70"
-            >
-              {busy ? <LoaderCircle size={16} className="animate-spin" /> : null}
-              Sign in to admin
-            </button>
-          </form>
-
-          <div className="mt-5 flex flex-wrap gap-3">
-            <button
-              type="button"
-              onClick={handleFullSignOut}
-              className="inline-flex items-center gap-2 rounded-full border border-[var(--line)] px-5 py-3 text-sm text-[var(--text-primary)]"
-            >
-              <LogOut size={16} />
-              Sign out Google admin
-            </button>
-            <Link to="/" className="inline-flex text-sm text-[var(--accent-green)] items-center">
-              ← Back to storefront
+          <div className="mt-6 flex flex-wrap justify-center gap-3">
+            <Link to="/" className="rounded-full border border-[var(--line)] px-5 py-3 text-sm text-[var(--text-primary)]">
+              Back to storefront
             </Link>
+            <button type="button" onClick={logout} className="rounded-full bg-[var(--gold)] px-5 py-3 text-sm font-semibold text-[#111]">
+              Sign out
+            </button>
           </div>
         </div>
       </div>
@@ -345,8 +218,8 @@ export function AdminPage() {
             <div>
               <p className="text-xs uppercase tracking-[0.24em] text-[var(--accent-green)]">Admin panel</p>
               <h1 className="mt-2 font-display text-4xl text-[var(--text-primary)]">Manage the storefront</h1>
-              <p className="mt-2 text-sm text-[var(--text-secondary)]">Signed in as {session.admin?.name || googleAdmin?.name || brand.name}</p>
-              <p className="mt-1 text-sm text-[var(--text-secondary)]">Verified Google admin: {googleAdmin?.email}</p>
+              <p className="mt-2 text-sm text-[var(--text-secondary)]">Signed in as {user?.name || brand.name}</p>
+              <p className="mt-1 text-sm text-[var(--text-secondary)]">Admin account: {user?.email}</p>
             </div>
             <div className="flex flex-wrap gap-3">
               <button
@@ -371,7 +244,7 @@ export function AdminPage() {
               </button>
               <button
                 type="button"
-                onClick={handleFullSignOut}
+                onClick={logout}
                 className="inline-flex items-center gap-2 rounded-full border border-[var(--line)] px-5 py-3 text-sm text-[var(--text-primary)]"
               >
                 <LogOut size={16} />

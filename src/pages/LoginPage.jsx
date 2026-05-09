@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { ArrowRight, LoaderCircle, Shield, Sparkles } from 'lucide-react';
+import { ArrowRight, LoaderCircle } from 'lucide-react';
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { GoogleAuthButton } from '../components/GoogleAuthButton';
 import { useAuth } from '../context/AuthContext';
@@ -55,7 +55,7 @@ export function LoginPage() {
     <AuthShell
       eyebrow="Welcome back"
       title="Sign in to Hovaluxe"
-      description="Use your email account or continue with Google. Admin accounts unlock the dashboard automatically after sign-in."
+      description="Use your email account or continue with Google to sign in quickly and continue shopping."
     >
       <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
         <Field label="Email address">
@@ -125,14 +125,10 @@ function AuthShell({ eyebrow, title, description, children }) {
               Fragrance shopping with a polished sign-in flow.
             </h1>
             <p className="mt-5 max-w-xl text-sm leading-7 text-[var(--text-secondary)]">
-              Access your account quickly, continue with Google, and keep admin visibility restricted to the approved admin account.
+              Access your account quickly and continue shopping with a streamlined email or Google sign-in flow.
             </p>
           </div>
 
-          <div className="mt-8 grid gap-4 sm:grid-cols-2">
-            <FeatureCard icon={<Sparkles size={18} />} title="Customer login" text="Email and Google sign-in for everyday shoppers." />
-            <FeatureCard icon={<Shield size={18} />} title="Admin protection" text="The admin panel appears only for authenticated admin accounts." />
-          </div>
         </div>
 
         <div className="rounded-[2rem] border border-[var(--line)] bg-[#0c0d0d] p-6 shadow-[0_24px_90px_rgba(0,0,0,.48)] md:p-8">
@@ -142,18 +138,6 @@ function AuthShell({ eyebrow, title, description, children }) {
           {children}
         </div>
       </div>
-    </div>
-  );
-}
-
-function FeatureCard({ icon, title, text }) {
-  return (
-    <div className="rounded-[1.4rem] border border-[var(--line)] bg-white/[0.03] p-4">
-      <div className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[var(--gold)]/12 text-[var(--gold)]">
-        {icon}
-      </div>
-      <h3 className="mt-4 text-lg font-medium text-[var(--text-primary)]">{title}</h3>
-      <p className="mt-2 text-sm leading-7 text-[var(--text-secondary)]">{text}</p>
     </div>
   );
 }

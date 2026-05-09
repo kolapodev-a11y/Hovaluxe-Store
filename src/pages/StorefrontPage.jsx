@@ -8,9 +8,7 @@ import {
   Gem,
   MessageCircle,
   PackageCheck,
-  ShieldCheck,
   Sparkles,
-  Wallet,
   Wind,
 } from 'lucide-react';
 import { brand, normalizeProduct } from '../data/store';
@@ -348,16 +346,11 @@ export function StorefrontPage() {
           )}
         </section>
 
-        <section className="mx-auto grid max-w-7xl gap-6 px-4 py-4 md:px-6 lg:grid-cols-3 lg:px-8">
+        <section className="mx-auto grid max-w-7xl gap-6 px-4 py-4 md:px-6 lg:grid-cols-2 lg:px-8">
           <InfoPanel
             icon={<MessageCircle size={18} />}
             title="WhatsApp assistance"
             text="Send a ready-made order summary for stock confirmation, delivery follow-up, and direct support."
-          />
-          <InfoPanel
-            icon={<Wallet size={18} />}
-            title="Flutterwave payments"
-            text="Move from cart to secure checkout quickly when you are ready to complete the order online."
           />
           <InfoPanel
             icon={<ShieldCheck size={18} />}

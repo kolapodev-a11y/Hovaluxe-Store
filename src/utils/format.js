@@ -5,9 +5,21 @@ export const formatPrice = (amount) =>
     maximumFractionDigits: 0,
   }).format(amount || 0);
 
-export const titleCase = (value = '') =>
+export const formatDateTime = (value) =>
   value
+    ? new Intl.DateTimeFormat('en-NG', {
+        dateStyle: 'medium',
+        timeStyle: 'short',
+      }).format(new Date(value))
+    : '—';
+
+export const titleCase = (value = '') =>
+  String(value)
+    .replace(/_/g, ' ')
     .split('-')
+    .join(' ')
+    .split(' ')
+    .filter(Boolean)
     .map((item) => item.charAt(0).toUpperCase() + item.slice(1))
     .join(' ');
 

@@ -1,11 +1,17 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   ArrowRight,
+  Cloud,
+  CreditCard,
+  Droplets,
+  Flame,
+  Gem,
   MessageCircle,
   PackageCheck,
   ShieldCheck,
   Sparkles,
   Wallet,
+  Wind,
 } from 'lucide-react';
 import { brand, normalizeProduct } from '../data/store';
 import { useLocalStorage } from '../hooks/useLocalStorage';
@@ -26,6 +32,34 @@ const fallbackConfig = {
   currency: 'NGN',
   heroNotice: 'Nationwide delivery available',
 };
+
+const categoryCards = [
+  {
+    title: 'Perfume',
+    text: 'Long-lasting signature scents for daily wear and special moments.',
+    icon: Gem,
+  },
+  {
+    title: 'Body Spray',
+    text: 'Fresh and expressive sprays with light but noticeable projection.',
+    icon: Wind,
+  },
+  {
+    title: 'Roll Ons',
+    text: 'Compact fragrance oils and portable daily touch-up essentials.',
+    icon: Droplets,
+  },
+  {
+    title: 'Diffusers',
+    text: 'Elegant room fragrance pieces for homes, offices, and gift sets.',
+    icon: Flame,
+  },
+  {
+    title: 'Humidifiers',
+    text: 'Functional scent-tech for soft ambience and cleaner aromatic spaces.',
+    icon: Cloud,
+  },
+];
 
 export function StorefrontPage() {
   const [config, setConfig] = useState(fallbackConfig);
@@ -84,6 +118,10 @@ export function StorefrontPage() {
     () => products.filter((product) => product.featured).slice(0, 3),
     [products],
   );
+
+  const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+  const cartSubtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const checkoutEstimate = cartSubtotal + (cart.length ? config.deliveryFee : 0);
 
   const addToCart = (product) => {
     setCart((currentCart) => {
@@ -167,8 +205,6 @@ export function StorefrontPage() {
     }
   };
 
-  const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
-
   return (
     <div className="min-h-screen bg-[var(--bg)] text-[var(--text-primary)]">
       <Header cartCount={cartCount} onCartOpen={() => setCartOpen(true)} />
@@ -176,7 +212,7 @@ export function StorefrontPage() {
 
       {notice ? (
         <div className="mx-auto max-w-7xl px-4 pt-6 md:px-6 lg:px-8">
-          <div className="rounded-[1.4rem] border border-[var(--gold)]/25 bg-[var(--gold)]/10 px-4 py-3 text-sm text-[var(--text-primary)] text-center">
+          <div className="rounded-[1.4rem] border border-[var(--gold)]/25 bg-[var(--gold)]/10 px-4 py-3 text-center text-sm text-[var(--text-primary)]">
             {notice}
           </div>
         </div>
@@ -185,54 +221,51 @@ export function StorefrontPage() {
       <main>
         <section className="mx-auto max-w-7xl px-4 py-16 md:px-6 lg:px-8">
           <SectionTitle
-            eyebrow="Luxury categories"
-            title="Curated scent families and home fragrance essentials"
-            description="Explore signature perfumes, daily freshness picks, roll ons, diffusers, and humidifiers designed for refined everyday living."
+            eyebrow="Categories"
+            title="Curated scent essentials"
+            description="Explore the product families that shape the Hovaluxe store experience."
             align="center"
           />
-          <div className="grid gap-4 grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
-            {[
-              ['Perfume', 'Signature scents for day and night.'],
-              ['Body Spray', 'Fresh, affordable daily freshness.'],
-              ['Roll Ons', 'Portable oils for quick re-application.'],
-              ['Diffusers', 'Ambient home fragrance collection.'],
-              ['Humidifiers', 'Lifestyle devices for aromatic spaces.'],
-            ].map(([title, text]) => (
-              <div
+          <div className="grid gap-4 md:grid-cols-3 xl:grid-cols-5">
+            {categoryCards.map(({ title, text, icon: Icon }) => (
+              <article
                 key={title}
-                className="rounded-[1.6rem] border border-[var(--line)] bg-white/[0.03] p-5 text-center"
+                className="luxe-panel rounded-[1.6rem] p-5 text-center transition hover:-translate-y-1"
               >
-                <p className="text-xs uppercase tracking-[0.24em] text-[var(--accent-green)]">
-                  {title}
-                </p>
-                <p className="mt-3 text-sm leading-7 text-[var(--text-secondary)]">{text}</p>
-              </div>
+                <span className="mx-auto inline-flex h-14 w-14 items-center justify-center rounded-[1.1rem] border border-[var(--gold)]/20 bg-[linear-gradient(135deg,rgba(216,192,122,0.18),rgba(216,192,122,0.05))] text-[var(--gold-soft)]">
+                  <Icon size={22} />
+                </span>
+                <h3 className="mt-4 font-display text-[2rem] text-[var(--gold-soft)]">{title}</h3>
+                <p className="mt-2 text-sm leading-7 text-[var(--text-secondary)]">{text}</p>
+              </article>
             ))}
           </div>
         </section>
 
-        <section id="collections" className="mx-auto max-w-7xl px-4 py-8 md:px-6 lg:px-8">
-          <div className="rounded-[2rem] border border-[var(--line)] bg-[linear-gradient(135deg,rgba(226,201,138,.08),rgba(24,181,106,.05))] p-6 md:p-8">
+        <section id="collections" className="mx-auto max-w-7xl px-4 py-4 md:px-6 lg:px-8">
+          <div className="luxe-panel rounded-[2rem] p-6 md:p-8">
             <SectionTitle
-              eyebrow="Featured set"
-              title="A polished selection ready for the spotlight"
-              description="Highlight your best-selling fragrances and seasonal favorites while the full catalog stays easy to browse below."
+              eyebrow="Featured collection"
+              title="Best sellers and spotlight products"
+              description="Showcase the products you want customers to notice first."
               align="center"
             />
             <div className="grid gap-4 md:grid-cols-3">
               {featuredProducts.length ? featuredProducts.map((product) => (
-                <div key={product.id} className="rounded-[1.5rem] border border-[var(--line)] bg-[#101111] p-4 text-center">
+                <div key={product.id} className="overflow-hidden rounded-[1.5rem] border border-white/8 bg-[#101111] text-center">
                   <img
                     src={product.image}
                     alt={product.name}
-                    className="h-52 w-full rounded-[1.2rem] object-cover"
+                    className="h-56 w-full object-cover"
                   />
-                  <p className="mt-3 text-sm uppercase tracking-[0.22em] text-[var(--text-secondary)]">{product.category}</p>
-                  <p className="mt-2 font-display text-3xl text-[var(--text-primary)]">{product.name}</p>
-                  <p className="mt-2 text-sm text-[var(--gold)]">{formatPrice(product.price)}</p>
+                  <div className="p-5">
+                    <p className="text-xs uppercase tracking-[0.22em] text-[var(--text-secondary)]">{product.category}</p>
+                    <p className="mt-2 font-display text-3xl text-[var(--text-primary)]">{product.name}</p>
+                    <p className="mt-2 text-sm text-[var(--gold)]">{formatPrice(product.price)}</p>
+                  </div>
                 </div>
               )) : (
-                <div className="rounded-[1.5rem] border border-dashed border-[var(--line)] bg-[#101111] p-6 text-sm text-[var(--text-secondary)] text-center md:col-span-3">
+                <div className="rounded-[1.5rem] border border-dashed border-[var(--line)] bg-[#101111] p-6 text-center text-sm text-[var(--text-secondary)] md:col-span-3">
                   Add featured products from the admin panel to highlight them here.
                 </div>
               )}
@@ -244,15 +277,15 @@ export function StorefrontPage() {
           <div className="text-center">
             <SectionTitle
               eyebrow="Shop"
-              title="Browse, search, and filter products quickly"
-              description="Find the right scent or home fragrance piece with category filters, image magnification, and instant product search."
+              title="Browse the full catalog"
+              description="Search products and filter by category."
               align="center"
             />
             <div className="mx-auto w-full max-w-md">
               <input
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                placeholder="Search perfume, body spray, diffuser..."
+                placeholder="Search perfume, spray, diffuser..."
                 className="input-style text-center"
               />
             </div>
@@ -287,91 +320,105 @@ export function StorefrontPage() {
             <div className="mt-8 rounded-[1.8rem] border border-dashed border-[var(--line)] bg-white/[0.03] p-8 text-center">
               <p className="font-display text-3xl text-[var(--text-primary)]">No products found</p>
               <p className="mt-3 text-sm leading-7 text-[var(--text-secondary)]">
-                Try another keyword or switch the active category filter.
+                Try another keyword or switch the active category.
               </p>
             </div>
           )}
         </section>
 
-        <section className="mx-auto grid max-w-7xl gap-6 px-4 py-6 md:px-6 lg:grid-cols-[1fr_1fr_1fr] lg:px-8">
+        <section className="mx-auto grid max-w-7xl gap-6 px-4 py-4 md:px-6 lg:grid-cols-3 lg:px-8">
           <InfoPanel
             icon={<MessageCircle size={18} />}
             title="WhatsApp assistance"
-            text="Send a ready-made order summary directly to the Hovaluxe team for confirmation, stock checks, and delivery follow-up."
+            text="Send a ready-made order summary for stock confirmation, delivery follow-up, and direct support."
           />
           <InfoPanel
             icon={<Wallet size={18} />}
             title="Flutterwave payments"
-            text="Move from cart to secure payment quickly when you are ready to complete the order online."
+            text="Move from cart to secure checkout quickly when you are ready to complete the order online."
           />
           <InfoPanel
             icon={<ShieldCheck size={18} />}
-            title="Trusted order handling"
-            text="Orders are reviewed and fulfilled with clear delivery details, payment tracking, and store-side management."
+            title="Trusted fulfilment"
+            text="Orders are reviewed with clear delivery details, payment tracking, and store-side management."
           />
         </section>
 
         <section id="payments" className="mx-auto max-w-7xl px-4 py-16 md:px-6 lg:px-8">
           <div className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
-            <div className="rounded-[2rem] border border-[var(--line)] bg-white/[0.03] p-6 text-center lg:text-left">
+            <div className="luxe-panel rounded-[2rem] p-6 lg:p-7">
               <SectionTitle
                 eyebrow="Payments"
-                title="Two clear ways to complete your order"
-                description="Choose the buying style that suits you best: instant secure checkout or direct chat with the store team."
+                title="Checkout your way"
+                description="Choose direct support on WhatsApp or secure payment with Flutterwave."
               />
               <div className="space-y-4">
                 <PaymentRow
                   icon={<MessageCircle size={18} />}
-                  title="WhatsApp"
-                  body="Opens a structured message with your details, delivery address, selected items, and total for quick order confirmation."
+                  title="WhatsApp order"
+                  body="Opens a structured order message with your customer details, selected items, and delivery address."
                 />
                 <PaymentRow
-                  icon={<Wallet size={18} />}
+                  icon={<CreditCard size={18} />}
                   title="Flutterwave"
-                  body="Creates a secure checkout session so you can complete payment online and receive confirmation immediately."
+                  body="Creates a secure checkout session for online payment and order confirmation."
                 />
+              </div>
+
+              <div className="mt-6 rounded-[1.5rem] border border-white/8 bg-white/[0.03] p-5 text-sm text-[var(--text-secondary)]">
+                <div className="flex items-start gap-3">
+                  <Sparkles size={18} className="mt-0.5 text-[var(--gold)]" />
+                  <p>
+                    Delivery fee is currently set to <span className="text-[var(--gold-soft)]">{formatPrice(config.deliveryFee)}</span>. Customers can review this before completing checkout.
+                  </p>
+                </div>
               </div>
             </div>
 
-            <div className="rounded-[2rem] border border-[var(--line)] bg-[#101111] p-6 text-center">
-              <div className="flex flex-col items-center gap-3">
-                <PackageCheck className="text-[var(--gold)]" />
+            <div className="rounded-[2rem] border border-[var(--line)] bg-[#101111] p-6 shadow-[0_24px_70px_rgba(0,0,0,.38)] lg:p-7">
+              <div className="flex items-center justify-between gap-4">
                 <div>
-                  <p className="text-xs uppercase tracking-[0.24em] text-[var(--accent-green)]">Why customers love it</p>
-                  <h3 className="mt-2 font-display text-3xl text-[var(--text-primary)]">Simple, premium, and easy to trust</h3>
+                  <p className="text-xs uppercase tracking-[0.24em] text-[var(--accent-green)]">Active checkout</p>
+                  <h3 className="mt-2 font-display text-4xl text-[var(--text-primary)]">Ready to complete an order</h3>
                 </div>
+                <PackageCheck className="text-[var(--gold)]" size={24} />
               </div>
+
+              <div className="mt-6 grid gap-4 rounded-[1.5rem] border border-white/8 bg-white/[0.03] p-5 sm:grid-cols-3">
+                <SummaryTile label="Items" value={String(cartCount)} />
+                <SummaryTile label="Subtotal" value={formatPrice(cartSubtotal)} />
+                <SummaryTile label="Estimated total" value={formatPrice(checkoutEstimate)} />
+              </div>
+
               <div className="mt-6 space-y-3">
                 {[
-                  'Luxury presentation designed for fragrance shopping.',
-                  'Easy WhatsApp handoff for personalized guidance.',
-                  'Secure Flutterwave payment for direct online checkout.',
-                  `Standard delivery fee currently set to ${formatPrice(config.deliveryFee)}.`,
+                  'Customer details collected in a focused checkout flow.',
+                  'WhatsApp and Flutterwave stay available in the same order experience.',
+                  'Payment callback route remains ready for verified orders.',
                 ].map((line) => (
-                  <div key={line} className="rounded-[1.4rem] border border-[var(--line)] bg-white/[0.03] p-4 text-sm text-[var(--text-secondary)]">
+                  <div key={line} className="rounded-[1.2rem] border border-white/8 bg-white/[0.03] px-4 py-3 text-sm text-[var(--text-secondary)]">
                     {line}
                   </div>
                 ))}
               </div>
-            </div>
-          </div>
-        </section>
 
-        <section className="mx-auto max-w-7xl px-4 pb-20 md:px-6 lg:px-8">
-          <div className="rounded-[2rem] border border-[var(--line)] bg-[linear-gradient(135deg,rgba(17,19,20,1),rgba(24,181,106,.08))] p-8 text-center md:p-10">
-            <div className="mx-auto max-w-4xl">
-              <p className="text-xs uppercase tracking-[0.24em] text-[var(--accent-green)]">Ready to order</p>
-              <h3 className="mt-2 font-display text-4xl text-[var(--text-primary)]">Build your cart and choose the checkout path that fits you best</h3>
-              <p className="mt-4 text-sm leading-8 text-[var(--text-secondary)] md:text-base">
-                For fast support, use WhatsApp inside checkout. For direct online payment, continue with Flutterwave once your cart is ready.
-              </p>
-              <a
-                href="#payments"
-                className="mt-6 inline-flex items-center gap-2 rounded-full bg-[var(--gold)] px-6 py-3 text-sm font-semibold text-[#111]"
-              >
-                Review payment options
-                <ArrowRight size={16} />
-              </a>
+              <div className="mt-6 flex flex-wrap gap-3">
+                <button
+                  type="button"
+                  onClick={() => setCheckoutOpen(true)}
+                  className="inline-flex min-h-13 items-center justify-center gap-2 rounded-full bg-[linear-gradient(135deg,var(--gold-soft),var(--gold))] px-6 py-3 text-sm font-semibold text-[#1b140b] shadow-[0_10px_24px_rgba(216,192,122,0.18)] transition hover:-translate-y-0.5"
+                >
+                  Open checkout
+                  <ArrowRight size={16} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCartOpen(true)}
+                  className="inline-flex min-h-13 items-center justify-center gap-2 rounded-full border border-[var(--line)] bg-white/5 px-6 py-3 text-sm font-semibold text-[var(--text-primary)] transition hover:-translate-y-0.5 hover:border-[var(--gold)]/35"
+                >
+                  Review cart
+                </button>
+              </div>
             </div>
           </div>
         </section>
@@ -394,21 +441,43 @@ export function StorefrontPage() {
         submitting={submitting}
       />
 
-      <footer className="border-t border-[var(--line)] bg-[#090a0b]">
-        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-8 text-center text-sm text-[var(--text-secondary)] md:px-6 lg:px-8 xl:flex-row xl:items-center xl:justify-between xl:text-left">
-          <p>
-            {brand.name} • {config.heroNotice} • Delivery fee {formatPrice(config.deliveryFee)}
-          </p>
-          <div className="flex flex-wrap justify-center gap-3 xl:justify-end">
-            <span className="inline-flex items-center gap-2">
-              <PackageCheck size={16} /> Curated products
-            </span>
-            <span className="inline-flex items-center gap-2">
-              <Sparkles size={16} /> Premium styling
-            </span>
-            <span className="inline-flex items-center gap-2">
-              <MessageCircle size={16} /> {config.supportEmail}
-            </span>
+      <footer className="border-t border-[var(--line)] bg-[#090909]">
+        <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 md:px-6 lg:grid-cols-[1.1fr_0.9fr_0.9fr] lg:px-8">
+          <div>
+            <div className="inline-flex items-center gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-[var(--gold)]/25 bg-[linear-gradient(135deg,#181613,#0c0c0d)] text-[var(--gold)] shadow-[0_0_30px_rgba(216,192,122,.16)]">
+                <Gem size={20} />
+              </div>
+              <div>
+                <p className="font-display text-3xl leading-none text-[var(--gold-soft)]">{brand.name}</p>
+                <p className="mt-1 text-[11px] uppercase tracking-[0.3em] text-[var(--text-secondary)]">
+                  Luxury fragrance store
+                </p>
+              </div>
+            </div>
+            <p className="mt-4 max-w-md text-sm leading-7 text-[var(--text-secondary)]">
+              Premium fragrances and scent essentials with elegant browsing, secure payments, and direct customer support.
+            </p>
+          </div>
+
+          <div>
+            <h3 className="font-display text-3xl text-[var(--gold-soft)]">Categories</h3>
+            <div className="mt-4 space-y-3 text-sm text-[var(--text-secondary)]">
+              {categoryCards.map((category) => (
+                <a key={category.title} href="#collections" className="block transition hover:text-[var(--text-primary)]">
+                  {category.title}
+                </a>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <h3 className="font-display text-3xl text-[var(--gold-soft)]">Payments</h3>
+            <div className="mt-4 space-y-3 text-sm text-[var(--text-secondary)]">
+              <a href="#payments" className="block transition hover:text-[var(--text-primary)]">WhatsApp</a>
+              <a href="#payments" className="block transition hover:text-[var(--text-primary)]">Flutterwave</a>
+              <p>{config.supportEmail}</p>
+            </div>
           </div>
         </div>
       </footer>
@@ -438,6 +507,15 @@ function PaymentRow({ icon, title, body }) {
         <h4 className="text-base font-medium text-[var(--text-primary)]">{title}</h4>
         <p className="mt-2 text-sm leading-7 text-[var(--text-secondary)]">{body}</p>
       </div>
+    </div>
+  );
+}
+
+function SummaryTile({ label, value }) {
+  return (
+    <div>
+      <p className="text-xs uppercase tracking-[0.22em] text-[var(--text-secondary)]">{label}</p>
+      <p className="mt-2 font-display text-2xl text-[var(--gold-soft)]">{value}</p>
     </div>
   );
 }

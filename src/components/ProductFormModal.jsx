@@ -1,16 +1,19 @@
 import { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
-import { categories, statusOptions } from '../data/store';
+import { categories, createProductArtwork, statusOptions } from '../data/store';
 
 const emptyProduct = {
   name: '',
   category: categories[0],
   price: '',
   status: 'in-stock',
+  inventoryQuantity: '0',
   volume: '',
+  sku: '',
   description: '',
   featured: false,
   image: '',
+  isActive: true,
 };
 
 export function ProductFormModal({ open, onClose, onSave, product }) {
@@ -18,7 +21,11 @@ export function ProductFormModal({ open, onClose, onSave, product }) {
 
   useEffect(() => {
     if (product) {
-      setForm({ ...product, price: String(product.price ?? '') });
+      setForm({
+        ...product,
+        price: String(product.price ?? ''),
+        inventoryQuantity: String(product.inventoryQuantity ?? 0),
+      });
     } else {
       setForm(emptyProduct);
     }
@@ -41,7 +48,14 @@ export function ProductFormModal({ open, onClose, onSave, product }) {
     onSave({
       ...form,
       price: Number(form.price || 0),
-      id: product?.id,
+      inventoryQuantity: Number(form.inventoryQuantity || 0),
+      image:
+        form.image ||
+        createProductArtwork({
+          title: form.name || 'Hovaluxe',
+          subtitle: form.category || 'Luxury Scent',
+          bottle: String(form.name || 'LUXE').split(' ')[0].toUpperCase().slice(0, 8),
+        }),
     });
   };
 
@@ -51,8 +65,8 @@ export function ProductFormModal({ open, onClose, onSave, product }) {
       <div className={`fixed left-1/2 top-1/2 z-[80] w-[min(96vw,760px)] -translate-x-1/2 rounded-[2rem] border border-[var(--line)] bg-[#0c0d0d] p-6 transition ${open ? 'translate-y-[-50%] opacity-100' : 'pointer-events-none translate-y-[-46%] opacity-0'}`}>
         <div className="flex items-start justify-between gap-4 border-b border-[var(--line)] pb-4">
           <div>
-            <p className="text-xs uppercase tracking-[0.24em] text-[var(--text-secondary)]">Admin editor</p>
-            <h3 className="mt-2 font-display text-3xl text-[var(--text-primary)]">{product ? 'Edit product' : 'Add new product'}</h3>
+            <p className="text-xs uppercase tracking-[0.24em] text-[var(--text-secondary)]">Catalog editor</p>
+            <h3 className="mt-2 font-display text-3xl text-[var(--text-primary)]">{product ? 'Edit product' : 'Add product'}</h3>
           </div>
           <button type="button" onClick={onClose} className="rounded-full border border-[var(--line)] bg-white/5 p-3 text-[var(--text-primary)]">
             <X size={18} />
@@ -73,10 +87,16 @@ export function ProductFormModal({ open, onClose, onSave, product }) {
           <Field label="Price">
             <input type="number" min="0" value={form.price} onChange={(e) => updateField('price', e.target.value)} required className="input-style" />
           </Field>
-          <Field label="Volume / size">
-            <input value={form.volume} onChange={(e) => updateField('volume', e.target.value)} className="input-style" placeholder="e.g. 100ml" />
+          <Field label="Inventory quantity">
+            <input type="number" min="0" value={form.inventoryQuantity} onChange={(e) => updateField('inventoryQuantity', e.target.value)} className="input-style" />
           </Field>
-          <Field label="Stock status">
+          <Field label="Volume / size">
+            <input value={form.volume} onChange={(e) => updateField('volume', e.target.value)} className="input-style" placeholder="100ml" />
+          </Field>
+          <Field label="SKU">
+            <input value={form.sku} onChange={(e) => updateField('sku', e.target.value)} className="input-style" placeholder="HOV-001" />
+          </Field>
+          <Field label="Stock label">
             <select value={form.status} onChange={(e) => updateField('status', e.target.value)} className="input-style">
               {statusOptions.map((status) => (
                 <option key={status.value} value={status.value}>{status.label}</option>
@@ -85,7 +105,11 @@ export function ProductFormModal({ open, onClose, onSave, product }) {
           </Field>
           <label className="flex items-center gap-3 rounded-[1rem] border border-[var(--line)] bg-white/[0.03] px-4 py-3 text-sm text-[var(--text-primary)]">
             <input type="checkbox" checked={form.featured} onChange={(e) => updateField('featured', e.target.checked)} />
-            Featured product
+            Featured on storefront
+          </label>
+          <label className="flex items-center gap-3 rounded-[1rem] border border-[var(--line)] bg-white/[0.03] px-4 py-3 text-sm text-[var(--text-primary)] md:col-span-2">
+            <input type="checkbox" checked={form.isActive} onChange={(e) => updateField('isActive', e.target.checked)} />
+            Visible on storefront
           </label>
           <Field label="Image URL" className="md:col-span-2">
             <input value={form.image} onChange={(e) => updateField('image', e.target.value)} className="input-style" placeholder="Paste a hosted image URL or upload below" />

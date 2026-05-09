@@ -1,4 +1,4 @@
-import { MessageCircle, Sparkles, Wallet } from 'lucide-react';
+import { MessageCircle, ShieldCheck, Wallet } from 'lucide-react';
 
 export function HeroSection() {
   return (
@@ -7,15 +7,14 @@ export function HeroSection() {
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 md:px-6 lg:grid-cols-[1.2fr_0.8fr] lg:px-8 lg:py-20">
         <div className="relative z-10">
           <span className="inline-flex rounded-full border border-[var(--line)] bg-white/5 px-4 py-2 text-xs font-semibold uppercase tracking-[0.28em] text-[var(--accent-green)]">
-            Different style, same luxury energy
+            Premium fragrance store operations
           </span>
           <h1 className="mt-6 max-w-3xl font-display text-5xl leading-tight text-[var(--text-primary)] md:text-7xl">
-            Hovaluxe — a modern editorial storefront inspired by your WhatsApp business palette.
+            Refined shopping for scents, home fragrance, and daily essentials.
           </h1>
           <p className="mt-5 max-w-2xl text-base leading-8 text-[var(--text-secondary)] md:text-lg">
-            Instead of copying FortuneHub one-to-one, this version keeps the conversion flow and shopping layout,
-            then re-styles everything with a premium black, gold, and green system that feels richer and more
-            fragrance-focused.
+            Hovaluxe pairs a luxury storefront with a focused operations dashboard. Customers can check out on Flutterwave,
+            while WhatsApp orders remain conversational and are recorded internally by your store team.
           </p>
 
           <div className="mt-8 flex flex-wrap gap-4">
@@ -34,9 +33,9 @@ export function HeroSection() {
           </div>
 
           <div className="mt-10 grid gap-4 sm:grid-cols-3">
-            <FeatureChip icon={<Sparkles size={16} />} label="Perfume, sprays, roll ons" />
-            <FeatureChip icon={<MessageCircle size={16} />} label="WhatsApp checkout" />
-            <FeatureChip icon={<Wallet size={16} />} label="Flutterwave handoff" />
+            <FeatureChip icon={<Wallet size={16} />} label="Flutterwave checkout" />
+            <FeatureChip icon={<MessageCircle size={16} />} label="WhatsApp handoff" />
+            <FeatureChip icon={<ShieldCheck size={16} />} label="Admin order control" />
           </div>
         </div>
 
@@ -47,15 +46,15 @@ export function HeroSection() {
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <p className="font-display text-3xl text-[var(--text-primary)]">Hovaluxe</p>
-                  <p className="text-sm text-[var(--text-secondary)]">React storefront + local admin panel</p>
+                  <p className="text-sm text-[var(--text-secondary)]">Storefront, checkout, and fulfillment visibility</p>
                 </div>
                 <span className="rounded-full border border-[var(--accent-green)]/30 bg-[var(--accent-green)]/10 px-3 py-1 text-xs text-[var(--accent-green)]">
-                  Tailwind CSS
+                  Live API ready
                 </span>
               </div>
               <div className="grid grid-cols-2 gap-3 text-sm">
-                <MiniStat label="Palette" value="Black / Gold / Green" />
                 <MiniStat label="Checkout" value="WhatsApp + Flutterwave" />
+                <MiniStat label="Admin" value="Products + Orders" />
               </div>
             </div>
           </div>

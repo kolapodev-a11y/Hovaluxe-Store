@@ -1,28 +1,33 @@
-import { useMemo, useState } from 'react';
-import { MessageCircle, Wallet, X } from 'lucide-react';
-import { brand } from '../data/store';
+import { useEffect, useMemo, useState } from 'react';
+import { LoaderCircle, MessageCircle, Wallet, X } from 'lucide-react';
 import { formatPrice } from '../utils/format';
 
 const initialForm = {
-  customer: '',
-  phone: '',
-  address: '',
+  customerName: '',
+  customerPhone: '',
+  customerEmail: '',
+  shippingAddress: '',
+  notes: '',
   paymentMethod: 'WhatsApp',
 };
 
-export function CheckoutModal({ open, cart, onClose, onPlaceOrder }) {
+export function CheckoutModal({ open, cart, deliveryFee = 2500, onClose, onPlaceOrder, submitting }) {
   const [form, setForm] = useState(initialForm);
 
+  useEffect(() => {
+    if (!open) {
+      setForm(initialForm);
+    }
+  }, [open]);
+
   const subtotal = useMemo(() => cart.reduce((sum, item) => sum + item.price * item.quantity, 0), [cart]);
-  const shipping = cart.length ? 2500 : 0;
-  const total = subtotal + shipping;
+  const total = subtotal + (cart.length ? deliveryFee : 0);
 
   const updateField = (key, value) => setForm((prev) => ({ ...prev, [key]: value }));
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    onPlaceOrder({ ...form, total, subtotal, shipping });
-    setForm(initialForm);
+    onPlaceOrder({ ...form, total, subtotal, shipping: deliveryFee });
   };
 
   return (
@@ -38,7 +43,9 @@ export function CheckoutModal({ open, cart, onClose, onPlaceOrder }) {
           <div>
             <p className="text-xs uppercase tracking-[0.24em] text-[var(--text-secondary)]">Checkout</p>
             <h3 className="mt-2 font-display text-3xl text-[var(--text-primary)]">Finish your order</h3>
-            <p className="mt-2 text-sm text-[var(--text-secondary)]">Frontend demo flow using WhatsApp and Flutterwave handoff.</p>
+            <p className="mt-2 text-sm text-[var(--text-secondary)]">
+              Flutterwave payments are stored online. WhatsApp orders go directly to your storekeeper for manual confirmation.
+            </p>
           </div>
           <button type="button" onClick={onClose} className="rounded-full border border-[var(--line)] bg-white/5 p-3 text-[var(--text-primary)]">
             <X size={18} />
@@ -48,13 +55,19 @@ export function CheckoutModal({ open, cart, onClose, onPlaceOrder }) {
         <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_320px]">
           <form className="space-y-4" onSubmit={handleSubmit}>
             <Field label="Customer name">
-              <input value={form.customer} onChange={(e) => updateField('customer', e.target.value)} required className="input-style" placeholder="e.g. Adaeze Martins" />
+              <input value={form.customerName} onChange={(e) => updateField('customerName', e.target.value)} required className="input-style" placeholder="Adaeze Martins" />
             </Field>
-            <Field label="WhatsApp number">
-              <input value={form.phone} onChange={(e) => updateField('phone', e.target.value)} required className="input-style" placeholder="e.g. 08031234567" />
+            <Field label="Phone number">
+              <input value={form.customerPhone} onChange={(e) => updateField('customerPhone', e.target.value)} required className="input-style" placeholder="08031234567" />
+            </Field>
+            <Field label="Email address">
+              <input type="email" value={form.customerEmail} onChange={(e) => updateField('customerEmail', e.target.value)} className="input-style" placeholder="Optional for WhatsApp, useful for Flutterwave" />
             </Field>
             <Field label="Delivery address">
-              <textarea value={form.address} onChange={(e) => updateField('address', e.target.value)} required className="input-style min-h-28 resize-none" placeholder="Where should we deliver the order?" />
+              <textarea value={form.shippingAddress} onChange={(e) => updateField('shippingAddress', e.target.value)} required className="input-style min-h-28 resize-none" placeholder="Where should we deliver the order?" />
+            </Field>
+            <Field label="Order notes">
+              <textarea value={form.notes} onChange={(e) => updateField('notes', e.target.value)} className="input-style min-h-24 resize-none" placeholder="Optional directions, preferred contact time, or special request" />
             </Field>
 
             <Field label="Payment method">
@@ -77,7 +90,9 @@ export function CheckoutModal({ open, cart, onClose, onPlaceOrder }) {
                       <div>
                         <p className="font-medium">{method}</p>
                         <p className="text-xs text-[var(--text-secondary)]">
-                          {method === 'WhatsApp' ? 'Send order summary to business chat' : 'Redirect customer to payment provider'}
+                          {method === 'WhatsApp'
+                            ? 'Send your order summary to the storekeeper'
+                            : 'Redirect to secure Flutterwave payment'}
                         </p>
                       </div>
                     </div>
@@ -86,36 +101,44 @@ export function CheckoutModal({ open, cart, onClose, onPlaceOrder }) {
               </div>
             </Field>
 
-            <button type="submit" className="inline-flex w-full items-center justify-center rounded-full bg-[var(--gold)] px-5 py-3 text-sm font-semibold text-[#12110f]">
-              Place order now
+            <button
+              type="submit"
+              disabled={submitting}
+              className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[var(--gold)] px-5 py-3 text-sm font-semibold text-[#111] disabled:opacity-70"
+            >
+              {submitting ? <LoaderCircle size={16} className="animate-spin" /> : null}
+              {form.paymentMethod === 'WhatsApp' ? 'Continue on WhatsApp' : 'Pay with Flutterwave'}
             </button>
           </form>
 
-          <div className="rounded-[1.6rem] border border-[var(--line)] bg-white/[0.03] p-5">
+          <aside className="rounded-[1.5rem] border border-[var(--line)] bg-white/[0.03] p-5">
             <h4 className="font-display text-2xl text-[var(--text-primary)]">Order summary</h4>
-            <div className="mt-4 space-y-3">
+            <div className="mt-4 space-y-3 text-sm text-[var(--text-secondary)]">
               {cart.map((item) => (
-                <div key={item.id} className="flex items-center justify-between gap-3 text-sm">
+                <div key={item.id} className="flex items-start justify-between gap-3">
                   <div>
                     <p className="text-[var(--text-primary)]">{item.name}</p>
-                    <p className="text-[var(--text-secondary)]">Qty {item.quantity}</p>
+                    <p>{item.quantity} × {formatPrice(item.price)}</p>
                   </div>
-                  <span className="text-[var(--gold)]">{formatPrice(item.price * item.quantity)}</span>
+                  <span>{formatPrice(item.price * item.quantity)}</span>
                 </div>
               ))}
             </div>
-            <div className="mt-5 space-y-2 border-t border-[var(--line)] pt-4 text-sm text-[var(--text-secondary)]">
-              <div className="flex justify-between"><span>Subtotal</span><span>{formatPrice(subtotal)}</span></div>
-              <div className="flex justify-between"><span>Delivery</span><span>{formatPrice(shipping)}</span></div>
-              <div className="flex justify-between font-display text-xl text-[var(--text-primary)]"><span>Total</span><span className="text-[var(--gold)]">{formatPrice(total)}</span></div>
+            <div className="mt-5 border-t border-[var(--line)] pt-4 text-sm text-[var(--text-secondary)]">
+              <div className="flex items-center justify-between">
+                <span>Subtotal</span>
+                <span>{formatPrice(subtotal)}</span>
+              </div>
+              <div className="mt-2 flex items-center justify-between">
+                <span>Delivery</span>
+                <span>{formatPrice(cart.length ? deliveryFee : 0)}</span>
+              </div>
+              <div className="mt-4 flex items-center justify-between font-display text-2xl text-[var(--text-primary)]">
+                <span>Total</span>
+                <span className="text-[var(--gold)]">{formatPrice(total)}</span>
+              </div>
             </div>
-            <div id="payments" className="mt-5 rounded-[1.2rem] border border-[var(--line)] bg-[#111314] p-4 text-sm leading-7 text-[var(--text-secondary)]">
-              <p className="font-medium text-[var(--text-primary)]">Payment setup note</p>
-              <p>
-                The Flutterwave button currently links to <span className="text-[var(--text-primary)]">{brand.flutterwaveLink}</span>. Replace it with your real checkout integration or payment link when your backend is ready.
-              </p>
-            </div>
-          </div>
+          </aside>
         </div>
       </div>
     </>

@@ -1,8 +1,9 @@
 import { Link, NavLink } from 'react-router-dom';
 import { Gem, Menu, Shield, ShoppingBag, X } from 'lucide-react';
 import { useState } from 'react';
+import { brand } from '../data/store';
 
-export function Header({ brandName, cartCount, onCartOpen }) {
+export function Header({ cartCount, onCartOpen }) {
   const [open, setOpen] = useState(false);
 
   const navLinkClass = ({ isActive }) =>
@@ -20,7 +21,7 @@ export function Header({ brandName, cartCount, onCartOpen }) {
             <Gem size={20} />
           </div>
           <div>
-            <p className="font-display text-2xl leading-none text-[var(--text-primary)]">{brandName}</p>
+            <p className="font-display text-2xl leading-none text-[var(--text-primary)]">{brand.name}</p>
             <p className="mt-1 text-[10px] uppercase tracking-[0.38em] text-[var(--text-secondary)]">
               Luxury fragrance
             </p>
@@ -29,7 +30,7 @@ export function Header({ brandName, cartCount, onCartOpen }) {
 
         <nav className="hidden items-center gap-8 md:flex">
           <NavLink to="/" className={navLinkClass} end>
-            Storefront
+            Store
           </NavLink>
           <a href="#collections" className="text-[var(--text-secondary)] transition hover:text-[var(--text-primary)]">
             Collections
@@ -73,7 +74,7 @@ export function Header({ brandName, cartCount, onCartOpen }) {
         <div className="border-t border-[var(--line)] bg-[rgba(9,10,11,0.95)] px-4 py-4 md:hidden">
           <div className="flex flex-col gap-4">
             <NavLink to="/" className={navLinkClass} end onClick={() => setOpen(false)}>
-              Storefront
+              Store
             </NavLink>
             <a href="#collections" className="text-[var(--text-secondary)]" onClick={() => setOpen(false)}>
               Collections

@@ -36,7 +36,7 @@ export function ProductCard({ product, onAddToCart }) {
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="text-xs uppercase tracking-[0.22em] text-[var(--text-secondary)]">Volume</p>
-            <p className="mt-1 text-sm text-[var(--text-primary)]">{product.volume}</p>
+            <p className="mt-1 text-sm text-[var(--text-primary)]">{product.volume || 'Standard size'}</p>
           </div>
           <p className="font-display text-3xl text-[var(--gold)]">{formatPrice(product.price)}</p>
         </div>

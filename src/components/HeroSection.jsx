@@ -48,11 +48,10 @@ export function HeroSection({
             <div className="mt-8 flex flex-wrap justify-center gap-3 text-sm lg:justify-start">
               <MetaChip label="Premium fragrance picks" />
               <MetaChip label="Nationwide delivery" />
-              <MetaChip label="Flutterwave enabled" />
             </div>
           </div>
 
-          <div className="mx-auto w-full max-w-xl luxe-panel rounded-[1.75rem] p-5 md:p-6">
+          <div className="mx-auto w-full luxe-panel rounded-[1.75rem] p-5 md:p-6 lg:mx-0">
             <div className="mb-4 flex items-center justify-between gap-4">
               <span className="text-sm text-[var(--text-muted)]">Featured store preview</span>
               <span className="inline-flex items-center gap-2 rounded-full border border-[var(--accent-green)]/30 bg-[var(--accent-green)]/10 px-3 py-1 text-xs text-[var(--accent-green)]">
@@ -76,11 +75,7 @@ export function HeroSection({
               </p>
             </div>
 
-            <div className="grid gap-4 border-t border-white/8 pt-5 text-center sm:grid-cols-3">
-              <HeroStat value="5" label="Core categories" />
-              <HeroStat value="2" label="Payment methods" />
-              <HeroStat value="24/7" label="WhatsApp support" />
-            </div>
+
           </div>
         </div>
       </div>
@@ -94,15 +89,6 @@ function MetaChip({ label }) {
       <Sparkles size={14} className="text-[var(--gold)]" />
       {label}
     </span>
-  );
-}
-
-function HeroStat({ value, label }) {
-  return (
-    <div className="grid gap-1">
-      <span className="font-display text-3xl text-[var(--gold-soft)]">{value}</span>
-      <span className="text-sm text-[var(--text-secondary)]">{label}</span>
-    </div>
   );
 }
 

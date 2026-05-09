@@ -44,7 +44,7 @@ export function CheckoutModal({ open, cart, deliveryFee = 2500, onClose, onPlace
             <p className="text-xs uppercase tracking-[0.24em] text-[var(--text-secondary)]">Checkout</p>
             <h3 className="mt-2 font-display text-3xl text-[var(--text-primary)]">Finish your order</h3>
             <p className="mt-2 text-sm text-[var(--text-secondary)]">
-              Flutterwave payments are stored online. WhatsApp orders go directly to your storekeeper for manual confirmation.
+              Choose WhatsApp for assisted ordering or Flutterwave for a direct secure payment.
             </p>
           </div>
           <button type="button" onClick={onClose} className="rounded-full border border-[var(--line)] bg-white/5 p-3 text-[var(--text-primary)]">
@@ -61,7 +61,7 @@ export function CheckoutModal({ open, cart, deliveryFee = 2500, onClose, onPlace
               <input value={form.customerPhone} onChange={(e) => updateField('customerPhone', e.target.value)} required className="input-style" placeholder="08031234567" />
             </Field>
             <Field label="Email address">
-              <input type="email" value={form.customerEmail} onChange={(e) => updateField('customerEmail', e.target.value)} className="input-style" placeholder="Optional for WhatsApp, useful for Flutterwave" />
+              <input type="email" value={form.customerEmail} onChange={(e) => updateField('customerEmail', e.target.value)} className="input-style" placeholder="Required for Flutterwave, optional for WhatsApp" />
             </Field>
             <Field label="Delivery address">
               <textarea value={form.shippingAddress} onChange={(e) => updateField('shippingAddress', e.target.value)} required className="input-style min-h-28 resize-none" placeholder="Where should we deliver the order?" />
@@ -91,8 +91,8 @@ export function CheckoutModal({ open, cart, deliveryFee = 2500, onClose, onPlace
                         <p className="font-medium">{method}</p>
                         <p className="text-xs text-[var(--text-secondary)]">
                           {method === 'WhatsApp'
-                            ? 'Send your order summary to the storekeeper'
-                            : 'Redirect to secure Flutterwave payment'}
+                            ? 'Send your order summary to the Hovaluxe team'
+                            : 'Continue to secure Flutterwave payment'}
                         </p>
                       </div>
                     </div>

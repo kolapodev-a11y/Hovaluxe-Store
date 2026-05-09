@@ -1,20 +1,19 @@
 import { MessageCircle, ShieldCheck, Wallet } from 'lucide-react';
 
-export function HeroSection() {
+export function HeroSection({ notice = 'Nationwide delivery available' }) {
   return (
     <section className="relative overflow-hidden border-b border-[var(--line)]">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(199,164,93,0.18),transparent_25%),radial-gradient(circle_at_left,rgba(24,181,106,0.14),transparent_22%)]" />
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 md:px-6 lg:grid-cols-[1.2fr_0.8fr] lg:px-8 lg:py-20">
         <div className="relative z-10">
           <span className="inline-flex rounded-full border border-[var(--line)] bg-white/5 px-4 py-2 text-xs font-semibold uppercase tracking-[0.28em] text-[var(--accent-green)]">
-            Premium fragrance store operations
+            Premium fragrance collection
           </span>
           <h1 className="mt-6 max-w-3xl font-display text-5xl leading-tight text-[var(--text-primary)] md:text-7xl">
-            Refined shopping for scents, home fragrance, and daily essentials.
+            Refined fragrance shopping for personal scent and home ambience.
           </h1>
           <p className="mt-5 max-w-2xl text-base leading-8 text-[var(--text-secondary)] md:text-lg">
-            Hovaluxe pairs a luxury storefront with a focused operations dashboard. Customers can check out on Flutterwave,
-            while WhatsApp orders remain conversational and are recorded internally by your store team.
+            Discover curated perfume, body sprays, roll ons, diffusers, and humidifiers with two smooth order paths: direct WhatsApp assistance or secure Flutterwave checkout.
           </p>
 
           <div className="mt-8 flex flex-wrap gap-4">
@@ -34,8 +33,8 @@ export function HeroSection() {
 
           <div className="mt-10 grid gap-4 sm:grid-cols-3">
             <FeatureChip icon={<Wallet size={16} />} label="Flutterwave checkout" />
-            <FeatureChip icon={<MessageCircle size={16} />} label="WhatsApp handoff" />
-            <FeatureChip icon={<ShieldCheck size={16} />} label="Admin order control" />
+            <FeatureChip icon={<MessageCircle size={16} />} label="WhatsApp ordering" />
+            <FeatureChip icon={<ShieldCheck size={16} />} label="Trusted fulfillment" />
           </div>
         </div>
 
@@ -46,15 +45,15 @@ export function HeroSection() {
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <p className="font-display text-3xl text-[var(--text-primary)]">Hovaluxe</p>
-                  <p className="text-sm text-[var(--text-secondary)]">Storefront, checkout, and fulfillment visibility</p>
+                  <p className="text-sm text-[var(--text-secondary)]">Luxury scents for elevated daily rituals</p>
                 </div>
                 <span className="rounded-full border border-[var(--accent-green)]/30 bg-[var(--accent-green)]/10 px-3 py-1 text-xs text-[var(--accent-green)]">
-                  Live API ready
+                  {notice}
                 </span>
               </div>
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <MiniStat label="Checkout" value="WhatsApp + Flutterwave" />
-                <MiniStat label="Admin" value="Products + Orders" />
+                <MiniStat label="Categories" value="5 premium groups" />
               </div>
             </div>
           </div>

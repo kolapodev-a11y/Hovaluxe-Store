@@ -1,14 +1,7 @@
 export const brand = {
   name: 'Hovaluxe',
   tagline: 'Luxury scents for elevated daily rituals.',
-  description:
-    'A premium fragrance storefront for perfume, body spray, roll ons, diffusers, and humidifiers with WhatsApp and Flutterwave payment flows.',
-  whatsappNumber: '2348123456789', // replace with your real business WhatsApp number
-  flutterwaveLink: 'https://flutterwave.com/pay/hovaluxe', // replace with your real Flutterwave checkout link
-  adminDemo: {
-    email: 'admin@hovaluxe.com',
-    password: 'admin123',
-  },
+  description: 'A premium fragrance storefront for perfumes, body sprays, roll-ons, diffusers, and humidifiers.',
 };
 
 export const categories = ['Perfume', 'Body Spray', 'Roll Ons', 'Diffusers', 'Humidifiers'];
@@ -66,137 +59,11 @@ export function createProductArtwork({ title = 'Hovaluxe', subtitle = 'Luxury Sc
   `);
 }
 
-export const seedProducts = [
-  {
-    id: 'hv-001',
-    name: 'Midnight Oud Elixir',
-    category: 'Perfume',
-    price: 28500,
-    status: 'in-stock',
-    featured: true,
-    volume: '100ml',
-    description: 'Deep oud, warm amber, and soft vanilla layered for a rich evening signature.',
-    image: createProductArtwork({
-      title: 'Midnight Oud Elixir',
-      subtitle: 'Noir Reserve',
-      accentA: '#c7a45d',
-      accentB: '#18b56a',
-      bottle: 'OUD',
-    }),
-  },
-  {
-    id: 'hv-002',
-    name: 'Velvet Bloom Mist',
-    category: 'Body Spray',
-    price: 9500,
-    status: 'in-stock',
-    featured: true,
-    volume: '250ml',
-    description: 'Fresh floral body mist with a soft musky finish for everyday luxury.',
-    image: createProductArtwork({
-      title: 'Velvet Bloom Mist',
-      subtitle: 'Body Spray',
-      accentA: '#e5b0c7',
-      accentB: '#c7a45d',
-      bottle: 'MIST',
-    }),
-  },
-  {
-    id: 'hv-003',
-    name: 'Pocket Amber Roll On',
-    category: 'Roll Ons',
-    price: 4500,
-    status: 'in-stock',
-    featured: false,
-    volume: '12ml',
-    description: 'Compact perfume oil with amber warmth, smooth spice, and excellent portability.',
-    image: createProductArtwork({
-      title: 'Pocket Amber Roll On',
-      subtitle: 'Travel Oil',
-      accentA: '#f0d596',
-      accentB: '#97734b',
-      bottle: 'ROLL',
-    }),
-  },
-  {
-    id: 'hv-004',
-    name: 'Maison Reed Diffuser',
-    category: 'Diffusers',
-    price: 16000,
-    status: 'low-stock',
-    featured: true,
-    volume: '150ml',
-    description: 'A home diffuser blending cedarwood, citrus peel, and herbal freshness.',
-    image: createProductArtwork({
-      title: 'Maison Reed Diffuser',
-      subtitle: 'Home Ritual',
-      accentA: '#18b56a',
-      accentB: '#c7a45d',
-      bottle: 'HOME',
-    }),
-  },
-  {
-    id: 'hv-005',
-    name: 'Aura Glow Humidifier',
-    category: 'Humidifiers',
-    price: 22000,
-    status: 'in-stock',
-    featured: false,
-    volume: 'USB Aroma',
-    description: 'Compact ambient humidifier designed to pair beautifully with essential oils.',
-    image: createProductArtwork({
-      title: 'Aura Glow Humidifier',
-      subtitle: 'Calm Air',
-      accentA: '#7de6cb',
-      accentB: '#18b56a',
-      bottle: 'AURA',
-    }),
-  },
-  {
-    id: 'hv-006',
-    name: 'Royal Citrus Signature',
-    category: 'Perfume',
-    price: 24500,
-    status: 'sold',
-    featured: false,
-    volume: '100ml',
-    description: 'Sparkling citrus on top with woody depth and a confident dry-down.',
-    image: createProductArtwork({
-      title: 'Royal Citrus Signature',
-      subtitle: 'Collector Series',
-      accentA: '#f5d377',
-      accentB: '#4bbd95',
-      bottle: 'CITRUS',
-    }),
-  },
-];
-
-export const seedTransactions = [
-  {
-    id: 'TXN-1001',
-    customer: 'Adaeze Martins',
-    channel: 'Flutterwave',
-    amount: 38000,
-    status: 'Paid',
-    items: 'Midnight Oud Elixir × 1',
-    date: '2026-05-05 10:12',
-  },
-  {
-    id: 'TXN-1002',
-    customer: 'Tunde Adebayo',
-    channel: 'WhatsApp',
-    amount: 16000,
-    status: 'Pending',
-    items: 'Maison Reed Diffuser × 1',
-    date: '2026-05-06 14:48',
-  },
-  {
-    id: 'TXN-1003',
-    customer: 'Kemi Johnson',
-    channel: 'Flutterwave',
-    amount: 31500,
-    status: 'Paid',
-    items: 'Velvet Bloom Mist × 1, Pocket Amber Roll On × 1, Shipping',
-    date: '2026-05-06 18:03',
-  },
-];
+export function resolveProductImage(product) {
+  if (product?.image) return product.image;
+  return createProductArtwork({
+    title: product?.name || 'Hovaluxe',
+    subtitle: product?.category || 'Luxury Scent',
+    bottle: String(product?.name || 'LUXE').split(' ')[0].toUpperCase().slice(0, 8),
+  });
+}

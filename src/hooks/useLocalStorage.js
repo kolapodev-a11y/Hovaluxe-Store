@@ -1,9 +1,5 @@
 import { useEffect, useState } from 'react';
 
-/**
- * Small reusable hook for persisting React state to localStorage.
- * This keeps the storefront and admin panel in sync without a backend.
- */
 export function useLocalStorage(key, initialValue) {
   const [value, setValue] = useState(() => {
     try {

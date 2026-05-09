@@ -1,7 +1,11 @@
-import { ArrowRight, CreditCard, MessageCircle, Sparkles } from 'lucide-react';
+import { ArrowRight, CreditCard, Sparkles } from 'lucide-react';
 import { brand } from '../data/store';
 
-export function HeroSection({ notice = 'Nationwide delivery available' }) {
+export function HeroSection({
+  notice = 'Nationwide delivery available',
+  cartCount = 0,
+  onCartOpen,
+}) {
   return (
     <section className="relative overflow-hidden border-b border-[var(--line)]">
       <div className="pointer-events-none absolute -left-20 -top-24 h-[380px] w-[380px] rounded-full bg-[radial-gradient(circle,rgba(216,192,122,0.14),transparent_60%)] blur-[80px]" />
@@ -9,19 +13,19 @@ export function HeroSection({ notice = 'Nationwide delivery available' }) {
 
       <div className="relative mx-auto max-w-7xl px-4 py-16 md:px-6 lg:px-8 lg:py-20">
         <div className="grid items-center gap-10 lg:grid-cols-[1.1fr_0.9fr]">
-          <div>
-            <p className="eyebrow">{notice}</p>
+          <div className="text-center lg:text-left">
+            <p className="eyebrow inline-flex justify-center lg:justify-start">{notice}</p>
             <p className="mt-4 text-sm uppercase tracking-[0.32em] text-[var(--text-secondary)]">
               {brand.name}
             </p>
-            <h1 className="mt-5 max-w-[11ch] font-display text-5xl leading-[0.95] text-[var(--text-primary)] md:text-7xl">
+            <h1 className="mx-auto mt-5 max-w-[11ch] font-display text-[clamp(3.2rem,11vw,5.8rem)] leading-[0.95] text-[var(--text-primary)] lg:mx-0">
               Luxury scents for body, home and everyday confidence.
             </h1>
-            <p className="mt-6 max-w-2xl text-base leading-8 text-[var(--text-secondary)] md:text-lg">
+            <p className="mx-auto mt-6 max-w-2xl text-base leading-8 text-[var(--text-secondary)] md:text-lg lg:mx-0">
               Premium perfume, body spray, roll ons, diffusers, and humidifiers in a polished storefront built for fast product discovery and confident checkout.
             </p>
 
-            <div className="mt-8 flex flex-wrap gap-4">
+            <div className="mt-8 flex flex-wrap justify-center gap-4 lg:justify-start">
               <a
                 href="#collections"
                 className="inline-flex min-h-13 items-center justify-center gap-2 rounded-full bg-[linear-gradient(135deg,var(--gold-soft),var(--gold))] px-6 py-3 text-sm font-semibold text-[#1b140b] shadow-[0_10px_24px_rgba(216,192,122,0.18)] transition hover:-translate-y-0.5"
@@ -29,23 +33,26 @@ export function HeroSection({ notice = 'Nationwide delivery available' }) {
                 Shop collection
                 <ArrowRight size={16} />
               </a>
-              <a
-                href="#payments"
-                className="inline-flex min-h-13 items-center justify-center gap-2 rounded-full border border-[var(--gold)]/30 bg-white/[0.03] px-6 py-3 text-sm font-semibold text-[var(--gold-soft)] transition hover:-translate-y-0.5"
-              >
-                Payment options
-                <CreditCard size={16} />
-              </a>
+              {cartCount > 0 ? (
+                <button
+                  type="button"
+                  onClick={onCartOpen}
+                  className="inline-flex min-h-13 items-center justify-center gap-2 rounded-full border border-[var(--gold)]/30 bg-white/[0.03] px-6 py-3 text-sm font-semibold text-[var(--gold-soft)] transition hover:-translate-y-0.5"
+                >
+                  Checkout options
+                  <CreditCard size={16} />
+                </button>
+              ) : null}
             </div>
 
-            <div className="mt-8 flex flex-wrap gap-3 text-sm">
+            <div className="mt-8 flex flex-wrap justify-center gap-3 text-sm lg:justify-start">
               <MetaChip label="Premium fragrance picks" />
               <MetaChip label="Nationwide delivery" />
               <MetaChip label="Flutterwave enabled" />
             </div>
           </div>
 
-          <div className="luxe-panel rounded-[1.75rem] p-5 md:p-6">
+          <div className="mx-auto w-full max-w-xl luxe-panel rounded-[1.75rem] p-5 md:p-6">
             <div className="mb-4 flex items-center justify-between gap-4">
               <span className="text-sm text-[var(--text-muted)]">Featured store preview</span>
               <span className="inline-flex items-center gap-2 rounded-full border border-[var(--accent-green)]/30 bg-[var(--accent-green)]/10 px-3 py-1 text-xs text-[var(--accent-green)]">
@@ -60,7 +67,7 @@ export function HeroSection({ notice = 'Nationwide delivery available' }) {
               <BottleVisual className="right-[10%] bottom-6 h-[185px] w-[120px]" />
             </div>
 
-            <div className="py-5">
+            <div className="py-5 text-center">
               <h2 className="font-display text-3xl text-[var(--gold-soft)] md:text-4xl">
                 Hovaluxe Signature Collection
               </h2>
@@ -69,7 +76,7 @@ export function HeroSection({ notice = 'Nationwide delivery available' }) {
               </p>
             </div>
 
-            <div className="grid gap-4 border-t border-white/8 pt-5 sm:grid-cols-3">
+            <div className="grid gap-4 border-t border-white/8 pt-5 text-center sm:grid-cols-3">
               <HeroStat value="5" label="Core categories" />
               <HeroStat value="2" label="Payment methods" />
               <HeroStat value="24/7" label="WhatsApp support" />

@@ -17,7 +17,13 @@ export const paymentMethods = ['WhatsApp', 'Flutterwave'];
 
 const svgToDataUri = (svg) => `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 
-export function createProductArtwork({ title = 'Hovaluxe', subtitle = 'Luxury Scent', accentA = '#c7a45d', accentB = '#18b56a', bottle = 'LUXE' }) {
+export function createProductArtwork({
+  title = 'Hovaluxe',
+  subtitle = 'Luxury Scent',
+  accentA = '#c7a45d',
+  accentB = '#18b56a',
+  bottle = 'LUXE',
+}) {
   return svgToDataUri(`
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 900">
       <defs>
@@ -59,11 +65,37 @@ export function createProductArtwork({ title = 'Hovaluxe', subtitle = 'Luxury Sc
   `);
 }
 
+export function getProductImages(product) {
+  const gallery = [
+    ...(Array.isArray(product?.images) ? product.images : []),
+    ...(Array.isArray(product?.gallery) ? product.gallery : []),
+    product?.image,
+  ]
+    .map((item) => String(item || '').trim())
+    .filter(Boolean);
+
+  const uniqueGallery = [...new Set(gallery)].slice(0, 4);
+
+  if (uniqueGallery.length) return uniqueGallery;
+
+  return [
+    createProductArtwork({
+      title: product?.name || 'Hovaluxe',
+      subtitle: product?.category || 'Luxury Scent',
+      bottle: String(product?.name || 'LUXE').split(' ')[0].toUpperCase().slice(0, 8),
+    }),
+  ];
+}
+
 export function resolveProductImage(product) {
-  if (product?.image) return product.image;
-  return createProductArtwork({
-    title: product?.name || 'Hovaluxe',
-    subtitle: product?.category || 'Luxury Scent',
-    bottle: String(product?.name || 'LUXE').split(' ')[0].toUpperCase().slice(0, 8),
-  });
+  return getProductImages(product)[0];
+}
+
+export function normalizeProduct(product) {
+  const images = getProductImages(product);
+  return {
+    ...product,
+    images,
+    image: images[0],
+  };
 }

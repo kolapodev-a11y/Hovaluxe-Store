@@ -1,100 +1,113 @@
-import { ArrowRight, MessageCircle, ShieldCheck, Sparkles, Wallet } from 'lucide-react';
+import { ArrowRight, CreditCard, MessageCircle, Sparkles } from 'lucide-react';
 import { brand } from '../data/store';
 
 export function HeroSection({ notice = 'Nationwide delivery available' }) {
   return (
     <section className="relative overflow-hidden border-b border-[var(--line)]">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(199,164,93,0.18),transparent_30%),radial-gradient(circle_at_bottom_left,rgba(24,181,106,0.12),transparent_24%)]" />
-      <div className="relative mx-auto max-w-7xl px-4 py-16 text-center md:px-6 lg:px-8 lg:py-20">
-        <span className="inline-flex rounded-full border border-[var(--line)] bg-white/5 px-4 py-2 text-xs font-semibold uppercase tracking-[0.28em] text-[var(--accent-green)]">
-          Premium fragrance storefront
-        </span>
-        <p className="mt-6 text-sm uppercase tracking-[0.34em] text-[var(--gold)]">{brand.name}</p>
-        <h1 className="mx-auto mt-5 max-w-5xl font-display text-5xl leading-[0.95] text-[var(--text-primary)] md:text-7xl">
-          Luxury scents for body, home, and everyday confidence.
-        </h1>
-        <p className="mx-auto mt-6 max-w-3xl text-base leading-8 text-[var(--text-secondary)] md:text-lg">
-          Discover curated perfume, body sprays, roll ons, diffusers, and humidifiers in a centered storefront experience inspired by your portfolio layout while keeping the Hovaluxe luxury identity intact.
-        </p>
+      <div className="pointer-events-none absolute -left-20 -top-24 h-[380px] w-[380px] rounded-full bg-[radial-gradient(circle,rgba(216,192,122,0.14),transparent_60%)] blur-[80px]" />
+      <div className="pointer-events-none absolute -bottom-24 -right-20 h-[380px] w-[380px] rounded-full bg-[radial-gradient(circle,rgba(37,211,102,0.08),transparent_60%)] blur-[80px]" />
 
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
-          <a
-            href="#collections"
-            className="inline-flex items-center gap-2 rounded-full bg-[var(--gold)] px-6 py-3 text-sm font-semibold text-[#0e0d0b] transition hover:-translate-y-0.5 hover:shadow-[0_14px_35px_rgba(199,164,93,.28)]"
-          >
-            Browse collections
-            <ArrowRight size={16} />
-          </a>
-          <a
-            href="#payments"
-            className="rounded-full border border-[var(--line)] bg-white/5 px-6 py-3 text-sm font-semibold text-[var(--text-primary)] transition hover:border-[var(--gold)]/45 hover:bg-white/10"
-          >
-            Payment options
-          </a>
-        </div>
+      <div className="relative mx-auto max-w-7xl px-4 py-16 md:px-6 lg:px-8 lg:py-20">
+        <div className="grid items-center gap-10 lg:grid-cols-[1.1fr_0.9fr]">
+          <div>
+            <p className="eyebrow">{notice}</p>
+            <p className="mt-4 text-sm uppercase tracking-[0.32em] text-[var(--text-secondary)]">
+              {brand.name}
+            </p>
+            <h1 className="mt-5 max-w-[11ch] font-display text-5xl leading-[0.95] text-[var(--text-primary)] md:text-7xl">
+              Luxury scents for body, home and everyday confidence.
+            </h1>
+            <p className="mt-6 max-w-2xl text-base leading-8 text-[var(--text-secondary)] md:text-lg">
+              Premium perfume, body spray, roll ons, diffusers, and humidifiers in a polished storefront built for fast product discovery and confident checkout.
+            </p>
 
-        <div className="mt-8 flex flex-wrap justify-center gap-3 text-sm">
-          <MetaChip label={notice} />
-          <MetaChip label="Centered premium storefront" />
-          <MetaChip label="Sticky header navigation" />
-        </div>
+            <div className="mt-8 flex flex-wrap gap-4">
+              <a
+                href="#collections"
+                className="inline-flex min-h-13 items-center justify-center gap-2 rounded-full bg-[linear-gradient(135deg,var(--gold-soft),var(--gold))] px-6 py-3 text-sm font-semibold text-[#1b140b] shadow-[0_10px_24px_rgba(216,192,122,0.18)] transition hover:-translate-y-0.5"
+              >
+                Shop collection
+                <ArrowRight size={16} />
+              </a>
+              <a
+                href="#payments"
+                className="inline-flex min-h-13 items-center justify-center gap-2 rounded-full border border-[var(--gold)]/30 bg-white/[0.03] px-6 py-3 text-sm font-semibold text-[var(--gold-soft)] transition hover:-translate-y-0.5"
+              >
+                Payment options
+                <CreditCard size={16} />
+              </a>
+            </div>
 
-        <div className="mx-auto mt-12 max-w-5xl rounded-[2rem] border border-[var(--line)] bg-[linear-gradient(180deg,rgba(20,20,22,.95),rgba(11,11,12,.98))] p-6 shadow-[0_25px_70px_rgba(0,0,0,.45)] md:p-8">
-          <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:text-left">
-            <div className="text-center lg:text-left">
-              <p className="text-xs uppercase tracking-[0.24em] text-[var(--accent-green)]">Storefront direction</p>
-              <h2 className="mt-3 font-display text-4xl text-[var(--text-primary)] md:text-5xl">
-                Clean sections, balanced spacing, and luxury presentation.
+            <div className="mt-8 flex flex-wrap gap-3 text-sm">
+              <MetaChip label="Premium fragrance picks" />
+              <MetaChip label="Nationwide delivery" />
+              <MetaChip label="Flutterwave enabled" />
+            </div>
+          </div>
+
+          <div className="luxe-panel rounded-[1.75rem] p-5 md:p-6">
+            <div className="mb-4 flex items-center justify-between gap-4">
+              <span className="text-sm text-[var(--text-muted)]">Featured store preview</span>
+              <span className="inline-flex items-center gap-2 rounded-full border border-[var(--accent-green)]/30 bg-[var(--accent-green)]/10 px-3 py-1 text-xs text-[var(--accent-green)]">
+                <span className="h-2 w-2 rounded-full bg-current" />
+                Online orders
+              </span>
+            </div>
+
+            <div className="relative min-h-[290px] overflow-hidden rounded-[1.5rem] border border-white/8 bg-[radial-gradient(circle_at_50%_20%,rgba(216,192,122,0.18),transparent_38%),linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))]">
+              <BottleVisual className="left-[10%] bottom-6 h-[170px] w-[120px]" />
+              <BottleVisual className="left-1/2 bottom-6 h-[220px] w-[140px] -translate-x-1/2" featured />
+              <BottleVisual className="right-[10%] bottom-6 h-[185px] w-[120px]" />
+            </div>
+
+            <div className="py-5">
+              <h2 className="font-display text-3xl text-[var(--gold-soft)] md:text-4xl">
+                Hovaluxe Signature Collection
               </h2>
-              <p className="mt-4 text-sm leading-8 text-[var(--text-secondary)] md:text-base">
-                This update keeps your Hovaluxe header consistent, removes the top WhatsApp CTA, centers key copy, and makes the product browsing experience cleaner across mobile and desktop.
+              <p className="mt-2 text-sm leading-7 text-[var(--text-secondary)] md:text-base">
+                Dark luxury visuals, elegant scent storytelling, and conversion-focused storefront sections.
               </p>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-3">
-              <FeatureCard icon={<Wallet size={18} />} title="Flutterwave checkout" text="Secure online payments when shoppers are ready to complete an order." />
-              <FeatureCard icon={<MessageCircle size={18} />} title="WhatsApp ordering" text="Direct manual support stays available inside checkout instead of the header." />
-              <FeatureCard icon={<ShieldCheck size={18} />} title="Protected admin access" text="Admin access is hidden until the allowed Google account signs in." />
+            <div className="grid gap-4 border-t border-white/8 pt-5 sm:grid-cols-3">
+              <HeroStat value="5" label="Core categories" />
+              <HeroStat value="2" label="Payment methods" />
+              <HeroStat value="24/7" label="WhatsApp support" />
             </div>
           </div>
-        </div>
-
-        <div className="mx-auto mt-10 grid max-w-5xl gap-4 sm:grid-cols-3">
-          <StatTile label="Categories" value="5 premium groups" />
-          <StatTile label="Checkout" value="WhatsApp + Flutterwave" />
-          <StatTile label="Layout" value="Centered and responsive" />
         </div>
       </div>
     </section>
   );
 }
 
-function FeatureCard({ icon, title, text }) {
-  return (
-    <div className="rounded-[1.4rem] border border-[var(--line)] bg-white/[0.03] p-4 text-center lg:text-left">
-      <span className="mx-auto inline-flex h-11 w-11 items-center justify-center rounded-full bg-[var(--gold)]/10 text-[var(--gold)] lg:mx-0">
-        {icon}
-      </span>
-      <h3 className="mt-4 font-display text-2xl text-[var(--text-primary)]">{title}</h3>
-      <p className="mt-2 text-sm leading-7 text-[var(--text-secondary)]">{text}</p>
-    </div>
-  );
-}
-
 function MetaChip({ label }) {
   return (
-    <span className="inline-flex items-center rounded-full border border-[var(--line)] bg-white/5 px-4 py-2 text-sm text-[var(--text-secondary)]">
-      <Sparkles size={14} className="mr-2 text-[var(--gold)]" />
+    <span className="inline-flex items-center gap-2 rounded-full border border-white/8 bg-white/[0.04] px-4 py-2 text-sm text-[var(--text-secondary)]">
+      <Sparkles size={14} className="text-[var(--gold)]" />
       {label}
     </span>
   );
 }
 
-function StatTile({ label, value }) {
+function HeroStat({ value, label }) {
   return (
-    <div className="rounded-[1.4rem] border border-[var(--line)] bg-white/[0.03] p-4">
-      <p className="text-xs uppercase tracking-[0.24em] text-[var(--text-secondary)]">{label}</p>
-      <p className="mt-3 font-display text-2xl text-[var(--text-primary)]">{value}</p>
+    <div className="grid gap-1">
+      <span className="font-display text-3xl text-[var(--gold-soft)]">{value}</span>
+      <span className="text-sm text-[var(--text-secondary)]">{label}</span>
+    </div>
+  );
+}
+
+function BottleVisual({ className = '', featured = false }) {
+  return (
+    <div className={`absolute ${className}`}>
+      <div
+        className={`absolute left-1/2 top-[-24px] h-7 w-[46px] -translate-x-1/2 rounded-[12px_12px_8px_8px] bg-[linear-gradient(180deg,var(--gold-soft),var(--gold-deep))] ${featured ? 'w-[54px]' : ''}`}
+      />
+      <div className="absolute inset-0 rounded-[24px_24px_18px_18px] border border-white/18 bg-[linear-gradient(180deg,rgba(255,255,255,0.28),rgba(255,255,255,0.04))] shadow-[inset_0_8px_20px_rgba(255,255,255,0.08),0_25px_30px_rgba(0,0,0,0.24)]" />
+      <div className="absolute inset-[20px] rounded-[18px] bg-[linear-gradient(180deg,rgba(216,192,122,0.22),rgba(0,0,0,0))]" />
+      <div className="absolute bottom-[-14px] left-1/2 h-6 w-[80%] -translate-x-1/2 rounded-full bg-black/30 blur-sm" />
     </div>
   );
 }

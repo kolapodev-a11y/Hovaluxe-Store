@@ -6,6 +6,7 @@ import {
   Droplets,
   Flame,
   Gem,
+  Mail,
   MessageCircle,
   PackageCheck,
   ShieldCheck,
@@ -61,8 +62,26 @@ const categoryCards = [
   },
 ];
 
+const catalogSectionId = 'catalog';
+
+const normalizePhoneNumber = (value = '') => String(value || '').replace(/[^\d]/g, '');
+
+const resolveTwitterUrl = (value = '') => {
+  const normalized = String(value || '').trim();
+  if (!normalized) return '';
+  if (/^https?:\/\//i.test(normalized)) return normalized;
+  return `https://twitter.com/${normalized.replace(/^@/, '')}`;
+};
+
+const scrollToSection = (sectionId) => {
+  if (typeof document === 'undefined') return;
+  window.requestAnimationFrame(() => {
+    document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+};
+
 export function StorefrontPage() {
-  const { token } = useAuth();
+  const { token, isAdmin } = useAuth();
   const [config, setConfig] = useState(fallbackConfig);
   const [products, setProducts] = useState([]);
   const [cart, setCart] = useLocalStorage('hovaluxe_cart', []);
@@ -125,6 +144,23 @@ export function StorefrontPage() {
     () => products.filter((product) => product.featured).slice(0, 3),
     [products],
   );
+  const showFeaturedSection = Boolean(featuredProducts.length || isAdmin);
+
+  const whatsappLink = useMemo(() => {
+    const phone = normalizePhoneNumber(config.whatsappNumber);
+    return phone ? `https://wa.me/${phone}` : '';
+  }, [config.whatsappNumber]);
+
+  const twitterLink = useMemo(
+    () => resolveTwitterUrl(config.twitterUrl || config.twitterHandle || ''),
+    [config.twitterHandle, config.twitterUrl],
+  );
+
+  const handleFooterCategoryClick = (categoryTitle) => {
+    setSearch('');
+    setActiveCategory(categoryTitle);
+    scrollToSection(catalogSectionId);
+  };
 
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
   const cartSubtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
@@ -263,38 +299,40 @@ export function StorefrontPage() {
           </div>
         </section>
 
-        <section id="collections" className="mx-auto max-w-7xl px-4 py-4 md:px-6 lg:px-8">
-          <div className="luxe-panel rounded-[2rem] p-6 md:p-8">
-            <SectionTitle
-              eyebrow="Featured collection"
-              title="Best sellers and spotlight products"
-              description="Showcase the products you want customers to notice first."
-              align="center"
-            />
-            <div className="grid gap-4 md:grid-cols-3">
-              {featuredProducts.length ? featuredProducts.map((product) => (
-                <div key={product.id} className="overflow-hidden rounded-[1.5rem] border border-white/8 bg-[#101111] text-center">
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="h-56 w-full object-cover"
-                  />
-                  <div className="p-5">
-                    <p className="text-xs uppercase tracking-[0.22em] text-[var(--text-secondary)]">{product.category}</p>
-                    <p className="mt-2 font-display text-3xl text-[var(--text-primary)]">{product.name}</p>
-                    <p className="mt-2 text-sm text-[var(--gold)]">{formatPrice(product.price)}</p>
+        {showFeaturedSection ? (
+          <section id="collections" className="mx-auto max-w-7xl px-4 py-4 md:px-6 lg:px-8">
+            <div className="luxe-panel rounded-[2rem] p-6 md:p-8">
+              <SectionTitle
+                eyebrow="Featured collection"
+                title="Best sellers and spotlight products"
+                description="Showcase the products you want customers to notice first."
+                align="center"
+              />
+              <div className="grid gap-4 md:grid-cols-3">
+                {featuredProducts.length ? featuredProducts.map((product) => (
+                  <div key={product.id} className="overflow-hidden rounded-[1.5rem] border border-white/8 bg-[#101111] text-center">
+                    <img
+                      src={product.image}
+                      alt={product.name}
+                      className="h-56 w-full object-cover"
+                    />
+                    <div className="p-5">
+                      <p className="text-xs uppercase tracking-[0.22em] text-[var(--text-secondary)]">{product.category}</p>
+                      <p className="mt-2 font-display text-3xl text-[var(--text-primary)]">{product.name}</p>
+                      <p className="mt-2 text-sm text-[var(--gold)]">{formatPrice(product.price)}</p>
+                    </div>
                   </div>
-                </div>
-              )) : (
-                <div className="rounded-[1.5rem] border border-dashed border-[var(--line)] bg-[#101111] p-6 text-center text-sm text-[var(--text-secondary)] md:col-span-3">
-                  Add featured products from the admin panel to highlight them here.
-                </div>
-              )}
+                )) : isAdmin ? (
+                  <div className="rounded-[1.5rem] border border-dashed border-[var(--line)] bg-[#101111] p-6 text-center text-sm text-[var(--text-secondary)] md:col-span-3">
+                    Add featured products from the admin panel to highlight them here.
+                  </div>
+                ) : null}
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
+        ) : null}
 
-        <section className="mx-auto max-w-7xl px-4 py-14 md:px-6 lg:px-8">
+        <section id={catalogSectionId} className="mx-auto max-w-7xl px-4 py-14 md:px-6 lg:px-8">
           <div className="text-center">
             <SectionTitle
               eyebrow="Shop"
@@ -482,25 +520,39 @@ export function StorefrontPage() {
             <h3 className="font-display text-3xl text-[var(--gold-soft)]">Categories</h3>
             <div className="mt-4 space-y-3 text-sm text-[var(--text-secondary)]">
               {categoryCards.map((category) => (
-                <a key={category.title} href="#collections" className="block transition hover:text-[var(--text-primary)]">
+                <button
+                  key={category.title}
+                  type="button"
+                  onClick={() => handleFooterCategoryClick(category.title)}
+                  className="block text-left transition hover:text-[var(--text-primary)]"
+                >
                   {category.title}
-                </a>
+                </button>
               ))}
             </div>
           </div>
 
           <div>
-            <h3 className="font-display text-3xl text-[var(--gold-soft)]">Payments</h3>
+            <h3 className="font-display text-3xl text-[var(--gold-soft)]">Contact</h3>
             <div className="mt-4 space-y-3 text-sm text-[var(--text-secondary)]">
-              {cartCount > 0 ? (
-                <>
-                  <a href="#payments" className="block transition hover:text-[var(--text-primary)]">WhatsApp</a>
-                  <a href="#payments" className="block transition hover:text-[var(--text-primary)]">Flutterwave</a>
-                </>
-              ) : (
-                <p>Add a product to cart to unlock checkout options.</p>
-              )}
-              <p>{config.supportEmail}</p>
+              <ContactLink
+                icon={<Mail size={18} />}
+                label="Email"
+                value={config.supportEmail || 'Email not set'}
+                href={config.supportEmail ? `mailto:${config.supportEmail}` : ''}
+              />
+              <ContactLink
+                icon={<TwitterIcon />}
+                label="Twitter"
+                value={config.twitterHandle || config.twitterUrl || 'Twitter not set'}
+                href={twitterLink}
+              />
+              <ContactLink
+                icon={<WhatsAppIcon />}
+                label="WhatsApp"
+                value={config.whatsappNumber || 'WhatsApp not set'}
+                href={whatsappLink}
+              />
             </div>
           </div>
         </div>
@@ -541,5 +593,57 @@ function SummaryTile({ label, value }) {
       <p className="text-xs uppercase tracking-[0.22em] text-[var(--text-secondary)]">{label}</p>
       <p className="mt-2 font-display text-2xl text-[var(--gold-soft)]">{value}</p>
     </div>
+  );
+}
+
+function ContactLink({ icon, label, value, href }) {
+  const clickable = Boolean(href);
+  const external = /^https?:\/\//i.test(href || '');
+  const classes = `flex items-center gap-3 rounded-[1.2rem] border border-[var(--line)] bg-white/[0.03] px-4 py-3 transition ${
+    clickable
+      ? 'hover:border-[var(--gold)]/35 hover:text-[var(--text-primary)]'
+      : 'cursor-not-allowed opacity-70'
+  }`;
+
+  const content = (
+    <>
+      <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[var(--gold)]/10 text-[var(--gold)]">
+        {icon}
+      </span>
+      <span>
+        <span className="block text-xs uppercase tracking-[0.22em] text-[var(--text-secondary)]">{label}</span>
+        <span className="mt-1 block text-sm text-[var(--text-primary)]">{value}</span>
+      </span>
+    </>
+  );
+
+  if (!clickable) {
+    return <div className={classes}>{content}</div>;
+  }
+
+  return (
+    <a
+      href={href}
+      className={classes}
+      {...(external ? { target: '_blank', rel: 'noreferrer' } : {})}
+    >
+      {content}
+    </a>
+  );
+}
+
+function TwitterIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className="h-[18px] w-[18px]" aria-hidden="true">
+      <path d="M18.901 2H22l-6.77 7.738L23 22h-6.109l-4.785-7.406L5.622 22H2.521l7.24-8.274L2 2h6.264l4.326 6.718L18.901 2Zm-1.071 18h1.689L7.347 3.894H5.535L17.83 20Z" />
+    </svg>
+  );
+}
+
+function WhatsAppIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className="h-[18px] w-[18px]" aria-hidden="true">
+      <path d="M19.05 4.91A9.82 9.82 0 0 0 12.04 2C6.55 2 2.08 6.47 2.08 11.96c0 1.75.46 3.47 1.33 4.98L2 22l5.21-1.37a9.9 9.9 0 0 0 4.83 1.24h.01c5.49 0 9.96-4.47 9.96-9.96 0-2.66-1.03-5.16-2.96-7ZM12.05 20.2h-.01a8.23 8.23 0 0 1-4.19-1.15l-.3-.18-3.09.81.82-3.02-.2-.31a8.2 8.2 0 0 1-1.26-4.39c0-4.54 3.69-8.23 8.24-8.23a8.18 8.18 0 0 1 5.84 2.42 8.17 8.17 0 0 1 2.4 5.81c0 4.54-3.69 8.24-8.23 8.24Zm4.51-6.17c-.25-.12-1.47-.73-1.69-.81-.23-.08-.39-.12-.56.12-.17.25-.64.81-.79.98-.15.17-.29.19-.54.06-.25-.12-1.04-.38-1.99-1.21-.74-.66-1.24-1.47-1.39-1.72-.15-.25-.02-.38.11-.51.11-.11.25-.29.38-.44.12-.15.17-.25.25-.42.08-.17.04-.31-.02-.44-.06-.12-.56-1.35-.77-1.85-.2-.48-.41-.42-.56-.43h-.48c-.17 0-.44.06-.67.31-.23.25-.87.85-.87 2.08s.89 2.41 1.01 2.58c.12.17 1.74 2.66 4.21 3.73.59.25 1.05.4 1.41.52.59.19 1.12.16 1.54.1.47-.07 1.47-.6 1.67-1.18.21-.58.21-1.08.15-1.18-.06-.11-.23-.17-.48-.29Z" />
+    </svg>
   );
 }

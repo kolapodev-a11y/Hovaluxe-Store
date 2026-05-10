@@ -8,6 +8,7 @@ import {
   Gem,
   MessageCircle,
   PackageCheck,
+  ShieldCheck,
   Sparkles,
   Wind,
 } from 'lucide-react';

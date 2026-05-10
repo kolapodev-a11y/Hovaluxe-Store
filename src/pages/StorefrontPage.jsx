@@ -27,8 +27,8 @@ import { useAuth } from '../context/AuthContext';
 
 const fallbackConfig = {
   deliveryFee: 2500,
-  whatsappNumber: '',
-  supportEmail: 'hello@hovaluxe.com',
+  whatsappNumber: '0816 114 8918',
+  supportEmail: 'henryolakunle8@gmail.com',
   currency: 'NGN',
   heroNotice: 'Nationwide delivery available',
 };

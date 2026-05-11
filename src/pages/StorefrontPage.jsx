@@ -30,6 +30,7 @@ const fallbackConfig = {
   deliveryFee: 2500,
   whatsappNumber: '0816 114 8918',
   supportEmail: 'henryolakunle8@gmail.com',
+  twitterUrl: 'https://x.com/KUNLELUXE',
   currency: 'NGN',
   heroNotice: 'Nationwide delivery available',
 };

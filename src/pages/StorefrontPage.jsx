@@ -539,19 +539,19 @@ export function StorefrontPage() {
               <ContactLink
                 icon={<Mail size={18} />}
                 label="Email"
-                value={config.supportEmail || 'Email not set'}
+                value={config.supportEmail ? 'Send us an email' : 'Email not set'}
                 href={config.supportEmail ? `mailto:${config.supportEmail}` : ''}
               />
               <ContactLink
                 icon={<TwitterIcon />}
                 label="Twitter"
-                value={config.twitterHandle || config.twitterUrl || 'Twitter not set'}
+                value={twitterLink ? 'Follow us on X' : 'Twitter not set'}
                 href={twitterLink}
               />
               <ContactLink
                 icon={<WhatsAppIcon />}
                 label="WhatsApp"
-                value={config.whatsappNumber || 'WhatsApp not set'}
+                value={whatsappLink ? 'Chat with us on WhatsApp' : 'WhatsApp not set'}
                 href={whatsappLink}
               />
             </div>

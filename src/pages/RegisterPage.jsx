@@ -4,6 +4,7 @@ import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { GoogleAuthButton } from '../components/GoogleAuthButton';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../lib/api';
+import { isAdminRole } from '../utils/auth';
 
 export function RegisterPage() {
   const navigate = useNavigate();
@@ -46,7 +47,7 @@ export function RegisterPage() {
   const finishAuth = (payload) => {
     login(payload);
 
-    if (payload?.user?.role === 'admin') {
+    if (isAdminRole(payload?.user?.role)) {
       navigate('/admin', { replace: true });
       return;
     }

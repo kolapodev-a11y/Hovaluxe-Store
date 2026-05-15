@@ -153,11 +153,12 @@ export function StorefrontPage() {
     });
   }, [products, activeCategory, search]);
 
-  const featuredProducts = useMemo(
-    () => products.filter((product) => product.featured).slice(0, 3),
-    [products],
-  );
-  const showFeaturedSection = Boolean(featuredProducts.length || isAdmin);
+  const collectionProducts = useMemo(() => {
+    const featured = products.filter((product) => product.featured);
+    if (featured.length) return featured.slice(0, 3);
+    return products.slice(0, 3);
+  }, [products]);
+  const showFeaturedSection = Boolean(collectionProducts.length || isAdmin);
 
   const whatsappLink = useMemo(() => {
     const phone = normalizePhoneNumber(config.whatsappNumber);
@@ -323,13 +324,13 @@ export function StorefrontPage() {
           <section id="collections" className="mx-auto max-w-7xl px-4 py-4 md:px-6 lg:px-8">
             <div className="luxe-panel rounded-[2rem] p-6 md:p-8">
               <SectionTitle
-                eyebrow="Featured collection"
-                title="Best sellers and spotlight products"
-                description="Showcase the products you want customers to notice first."
+                eyebrow="Collections"
+                title="Curated picks from the Hovaluxe catalog"
+                description="This section now stays visible even when no products have been manually marked as featured."
                 align="center"
               />
               <div className="grid gap-4 md:grid-cols-3">
-                {featuredProducts.length ? featuredProducts.map((product) => (
+                {collectionProducts.length ? collectionProducts.map((product) => (
                   <div key={product.id} className="overflow-hidden rounded-[1.5rem] border border-white/8 bg-[#101111] text-center">
                     <img
                       src={product.image}
@@ -344,7 +345,7 @@ export function StorefrontPage() {
                   </div>
                 )) : isAdmin ? (
                   <div className="rounded-[1.5rem] border border-dashed border-[var(--line)] bg-[#101111] p-6 text-center text-sm text-[var(--text-secondary)] md:col-span-3">
-                    Add featured products from the admin panel to highlight them here.
+                    Add products to the catalog or mark items as featured from the admin panel to refine this section further.
                   </div>
                 ) : null}
               </div>

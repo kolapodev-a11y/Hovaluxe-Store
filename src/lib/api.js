@@ -20,16 +20,15 @@ async function request(path, options = {}) {
 }
 
 export const api = {
-  // ---------- Auth ----------
   register: (body) => request('/auth/register', { method: 'POST', body: JSON.stringify(body) }),
   login: (body) => request('/auth/login', { method: 'POST', body: JSON.stringify(body) }),
   getAuthProviders: () => request('/auth/providers', { method: 'GET' }),
   googleLogin: (body) => request('/auth/google', { method: 'POST', body: JSON.stringify(body) }),
   getMe: (token) => request('/auth/me', { method: 'GET', token }),
 
-  // ---------- Public storefront ----------
   getPublicConfig: () => request('/config/public', { method: 'GET' }),
   getProducts: () => request('/products', { method: 'GET' }),
+  getMyOrders: (token) => request('/account/orders', { method: 'GET', token }),
   createFlutterwaveCheckout: (body, token) =>
     request('/payments/flutterwave/checkout', { method: 'POST', body: JSON.stringify(body), token }),
   verifyFlutterwavePayment: ({ transactionId, txRef }) =>
@@ -38,7 +37,6 @@ export const api = {
       { method: 'GET' },
     ),
 
-  // ---------- Admin ----------
   adminLogin: (body) => request('/admin/login', { method: 'POST', body: JSON.stringify(body) }),
   getAdminSummary: (token) => request('/admin/summary', { method: 'GET', token }),
   getAdminProducts: (token) => request('/admin/products', { method: 'GET', token }),
@@ -50,8 +48,6 @@ export const api = {
     request(`/admin/orders?paymentMethod=${encodeURIComponent(paymentMethod)}`, { method: 'GET', token }),
   updateOrder: (token, id, body) =>
     request(`/admin/orders/${id}`, { method: 'PATCH', token, body: JSON.stringify(body) }),
-  recordWhatsAppOrder: (token, body) =>
-    request('/admin/orders/whatsapp', { method: 'POST', token, body: JSON.stringify(body) }),
   getAdminConfig: (token) => request('/admin/config', { method: 'GET', token }),
   updateAdminConfig: (token, body) =>
     request('/admin/config', { method: 'PATCH', token, body: JSON.stringify(body) }),

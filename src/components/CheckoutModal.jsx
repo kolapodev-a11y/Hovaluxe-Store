@@ -2,23 +2,25 @@ import { useEffect, useMemo, useState } from 'react';
 import { LoaderCircle, MessageCircle, Wallet, X } from 'lucide-react';
 import { formatPrice } from '../utils/format';
 
-const initialForm = {
-  customerName: '',
+const makeInitialForm = (customerProfile = {}) => ({
+  customerName: customerProfile?.name || '',
   customerPhone: '',
-  customerEmail: '',
+  customerEmail: customerProfile?.email || '',
   shippingAddress: '',
   notes: '',
   paymentMethod: 'WhatsApp',
-};
+});
 
-export function CheckoutModal({ open, cart, deliveryFee = 2500, onClose, onPlaceOrder, submitting }) {
-  const [form, setForm] = useState(initialForm);
-
-  useEffect(() => {
-    if (!open) {
-      setForm(initialForm);
-    }
-  }, [open]);
+export function CheckoutModal({
+  open,
+  cart,
+  deliveryFee = 2500,
+  onClose,
+  onPlaceOrder,
+  submitting,
+  customerProfile,
+}) {
+  const [form, setForm] = useState(() => makeInitialForm(customerProfile));
 
   useEffect(() => {
     if (!open) return undefined;
@@ -41,24 +43,21 @@ export function CheckoutModal({ open, cart, deliveryFee = 2500, onClose, onPlace
     onPlaceOrder({ ...form, total, subtotal, shipping: deliveryFee });
   };
 
+  if (!open) {
+    return null;
+  }
+
   return (
     <>
-      <div
-        onClick={onClose}
-        className={`fixed inset-0 z-50 bg-black/70 backdrop-blur-[2px] transition ${open ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'}`}
-      />
-      <div
-        className={`fixed inset-0 z-[60] flex items-end justify-center p-3 sm:items-center sm:p-6 ${open ? 'pointer-events-auto' : 'pointer-events-none'}`}
-      >
-        <div
-          className={`flex max-h-[calc(100vh-0.75rem)] w-full max-w-5xl flex-col overflow-hidden rounded-[2rem] border border-[var(--line)] bg-[#0c0d0d] shadow-[0_20px_80px_rgba(0,0,0,.55)] transition duration-200 sm:max-h-[calc(100vh-2rem)] ${open ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}
-        >
+      <div onClick={onClose} className="fixed inset-0 z-50 bg-black/70 backdrop-blur-[2px]" />
+      <div className="fixed inset-0 z-[60] flex items-end justify-center p-3 sm:items-center sm:p-6">
+        <div className="flex max-h-[calc(100vh-0.75rem)] w-full max-w-5xl flex-col overflow-hidden rounded-[2rem] border border-[var(--line)] bg-[#0c0d0d] shadow-[0_20px_80px_rgba(0,0,0,.55)] sm:max-h-[calc(100vh-2rem)]">
           <div className="flex items-start justify-between gap-4 border-b border-[var(--line)] px-4 py-4 sm:px-6 sm:py-5">
             <div>
               <p className="text-xs uppercase tracking-[0.24em] text-[var(--text-secondary)]">Checkout</p>
               <h3 className="mt-2 font-display text-3xl text-[var(--text-primary)] sm:text-4xl">Finish your order</h3>
               <p className="mt-2 max-w-2xl text-sm leading-7 text-[var(--text-secondary)]">
-                Choose WhatsApp for assisted ordering or Flutterwave for a direct secure payment.
+                You are checking out as <span className="text-[var(--gold-soft)]">{customerProfile?.email || 'a logged-in customer'}</span>. Add your delivery details and choose how you want to complete the order.
               </p>
             </div>
             <button type="button" onClick={onClose} className="rounded-full border border-[var(--line)] bg-white/5 p-3 text-[var(--text-primary)]">
@@ -76,7 +75,14 @@ export function CheckoutModal({ open, cart, deliveryFee = 2500, onClose, onPlace
                   <input value={form.customerPhone} onChange={(e) => updateField('customerPhone', e.target.value)} required className="input-style placeholder:text-sm" placeholder="08031234567" />
                 </Field>
                 <Field label="Email address">
-                  <input type="email" value={form.customerEmail} onChange={(e) => updateField('customerEmail', e.target.value)} className="input-style placeholder:text-sm" placeholder="Required for Flutterwave, optional for WhatsApp" />
+                  <input
+                    type="email"
+                    value={form.customerEmail}
+                    onChange={(e) => updateField('customerEmail', e.target.value)}
+                    required={form.paymentMethod === 'Flutterwave'}
+                    className="input-style placeholder:text-sm"
+                    placeholder="Required for Flutterwave, optional for WhatsApp"
+                  />
                 </Field>
                 <Field label="Delivery address">
                   <textarea value={form.shippingAddress} onChange={(e) => updateField('shippingAddress', e.target.value)} required className="input-style min-h-28 resize-none placeholder:text-sm" placeholder="Where should we deliver the order?" />

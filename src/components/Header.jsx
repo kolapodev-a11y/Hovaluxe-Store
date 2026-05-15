@@ -2,6 +2,7 @@ import { Link, NavLink } from 'react-router-dom';
 import { Gem, LogOut, Menu, Shield, ShoppingBag, User, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { brand } from '../data/store';
+import { formatRoleLabel } from '../utils/auth';
 import { useAuth } from '../context/AuthContext';
 
 export function Header({ cartCount, onCartOpen, canAccessCheckout = false }) {
@@ -144,7 +145,7 @@ export function Header({ cartCount, onCartOpen, canAccessCheckout = false }) {
                   <div className="rounded-[1.2rem] border border-[var(--line)] bg-[#111314] p-4 text-sm leading-7 text-[var(--text-secondary)]">
                     <p className="text-[var(--text-primary)]">{user?.name || brand.name}</p>
                     <p className="mt-1">{user?.email}</p>
-                    <p className="mt-1 uppercase tracking-[0.18em] text-[var(--gold)]">{user?.role || 'user'}</p>
+                    <p className="mt-1 uppercase tracking-[0.18em] text-[var(--gold)]">{formatRoleLabel(user?.role || 'user')}</p>
                   </div>
                   <div className="flex flex-wrap gap-3">
                     {isAdmin ? (

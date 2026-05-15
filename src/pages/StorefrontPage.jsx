@@ -10,6 +10,7 @@ import {
   Mail,
   MessageCircle,
   PackageCheck,
+  Receipt,
   ShieldCheck,
   Sparkles,
   Wind,
@@ -23,7 +24,7 @@ import { CategoryStrip } from '../components/CategoryStrip';
 import { ProductCard } from '../components/ProductCard';
 import { CartDrawer } from '../components/CartDrawer';
 import { CheckoutModal } from '../components/CheckoutModal';
-import { formatPrice } from '../utils/format';
+import { formatDateTime, formatPrice, titleCase } from '../utils/format';
 import { api } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 
@@ -65,6 +66,7 @@ const categoryCards = [
 ];
 
 const catalogSectionId = 'catalog';
+const transactionsSectionId = 'transactions';
 
 const normalizePhoneNumber = (value = '') => String(value || '').replace(/[^\d]/g, '');
 
@@ -88,10 +90,13 @@ export function StorefrontPage() {
   const { token, user, isAuthenticated } = useAuth();
   const [config, setConfig] = useState(fallbackConfig);
   const [products, setProducts] = useState([]);
+  const [myOrders, setMyOrders] = useState([]);
   const [cart, setCart] = useLocalStorage('hovaluxe_cart', []);
 
   const [loading, setLoading] = useState(true);
+  const [historyLoading, setHistoryLoading] = useState(false);
   const [error, setError] = useState('');
+  const [historyError, setHistoryError] = useState('');
   const [notice, setNotice] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [activeCategory, setActiveCategory] = useState('All');
@@ -129,6 +134,37 @@ export function StorefrontPage() {
   }, []);
 
   useEffect(() => {
+    let active = true;
+
+    async function loadHistory() {
+      if (!isAuthenticated || !token) {
+        setMyOrders([]);
+        setHistoryError('');
+        setHistoryLoading(false);
+        return;
+      }
+
+      try {
+        setHistoryLoading(true);
+        const response = await api.getMyOrders(token);
+        if (!active) return;
+        setMyOrders(response.data || []);
+        setHistoryError('');
+      } catch (loadError) {
+        if (!active) return;
+        setHistoryError(loadError.message || 'Unable to load your transaction history right now.');
+      } finally {
+        if (active) setHistoryLoading(false);
+      }
+    }
+
+    loadHistory();
+    return () => {
+      active = false;
+    };
+  }, [isAuthenticated, token]);
+
+  useEffect(() => {
     if (!cart.length && checkoutOpen) {
       setCheckoutOpen(false);
     }
@@ -152,13 +188,6 @@ export function StorefrontPage() {
       return categoryMatch && searchMatch;
     });
   }, [products, activeCategory, search]);
-
-  const collectionProducts = useMemo(() => {
-    const featured = products.filter((product) => product.featured);
-    if (featured.length) return featured.slice(0, 3);
-    return products.slice(0, 3);
-  }, [products]);
-  const showFeaturedSection = Boolean(collectionProducts.length);
 
   const whatsappLink = useMemo(() => {
     const phone = normalizePhoneNumber(config.whatsappNumber);
@@ -291,7 +320,7 @@ export function StorefrontPage() {
         cartCount={cartCount}
         onCartOpen={() => setCartOpen(true)}
         canAccessCheckout={cartCount > 0}
-        showCollectionsSection={showFeaturedSection}
+        showTransactionSection={isAuthenticated}
       />
       <HeroSection notice={config.heroNotice} cartCount={cartCount} onCartOpen={() => setCartOpen(true)} />
 
@@ -326,35 +355,6 @@ export function StorefrontPage() {
             ))}
           </div>
         </section>
-
-        {showFeaturedSection ? (
-          <section id="collections" className="mx-auto max-w-7xl px-4 py-4 md:px-6 lg:px-8">
-            <div className="luxe-panel rounded-[2rem] p-6 md:p-8">
-              <SectionTitle
-                eyebrow="Collections"
-                title="Curated picks from the Hovaluxe catalog"
-                description="This section now stays visible even when no products have been manually marked as featured."
-                align="center"
-              />
-              <div className="grid gap-4 md:grid-cols-3">
-                {collectionProducts.length ? collectionProducts.map((product) => (
-                  <div key={product.id} className="overflow-hidden rounded-[1.5rem] border border-white/8 bg-[#101111] text-center">
-                    <img
-                      src={product.image}
-                      alt={product.name}
-                      className="h-56 w-full object-cover"
-                    />
-                    <div className="p-5">
-                      <p className="text-xs uppercase tracking-[0.22em] text-[var(--text-secondary)]">{product.category}</p>
-                      <p className="mt-2 font-display text-3xl text-[var(--text-primary)]">{product.name}</p>
-                      <p className="mt-2 text-sm text-[var(--gold)]">{formatPrice(product.price)}</p>
-                    </div>
-                  </div>
-                )) : null}
-              </div>
-            </div>
-          </section>
-        ) : null}
 
         <section id={catalogSectionId} className="mx-auto max-w-7xl px-4 py-14 md:px-6 lg:px-8">
           <div className="text-center">
@@ -472,8 +472,8 @@ export function StorefrontPage() {
                 <div className="mt-6 space-y-3">
                   {[
                     'Customer details are collected inside a responsive mobile-friendly checkout flow.',
-                    'WhatsApp and Flutterwave stay available in the same order experience.',
-                    'Customers can browse products without signing in, but checkout opens only after login.',
+                    'Your account name and email stay locked during checkout for consistency.',
+                    'Flutterwave orders appear in your account transaction history after payment is initiated.',
                   ].map((line) => (
                     <div key={line} className="rounded-[1.2rem] border border-white/8 bg-white/[0.03] px-4 py-3 text-sm text-[var(--text-secondary)]">
                       {line}
@@ -499,6 +499,51 @@ export function StorefrontPage() {
                   </button>
                 </div>
               </div>
+            </div>
+          </section>
+        ) : null}
+
+        {isAuthenticated ? (
+          <section id={transactionsSectionId} className="mx-auto max-w-7xl px-4 py-16 md:px-6 lg:px-8">
+            <div className="rounded-[2rem] border border-[var(--line)] bg-[#0f1010] p-6 shadow-[0_24px_70px_rgba(0,0,0,.36)] lg:p-8">
+              <div className="flex flex-col gap-4 border-b border-[var(--line)] pb-5 md:flex-row md:items-start md:justify-between">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.24em] text-[var(--accent-green)]">Account</p>
+                  <h3 className="mt-2 font-display text-4xl text-[var(--text-primary)]">Your transaction history</h3>
+                  <p className="mt-2 max-w-2xl text-sm leading-7 text-[var(--text-secondary)]">
+                    Review your Flutterwave payment activity, order references, and fulfilment updates from your signed-in account.
+                  </p>
+                </div>
+                <div className="rounded-[1.2rem] border border-[var(--line)] bg-white/[0.03] px-4 py-3 text-sm text-[var(--text-secondary)]">
+                  Signed in as <span className="text-[var(--gold-soft)]">{user?.email}</span>
+                </div>
+              </div>
+
+              {historyLoading ? (
+                <div className="mt-6 rounded-[1.4rem] border border-[var(--line)] bg-white/[0.03] p-6 text-sm text-[var(--text-secondary)]">
+                  Loading your transactions...
+                </div>
+              ) : historyError ? (
+                <div className="mt-6 rounded-[1.4rem] border border-rose-500/20 bg-rose-500/10 p-6 text-sm text-rose-200">
+                  {historyError}
+                </div>
+              ) : myOrders.length ? (
+                <div className="mt-6 grid gap-4 lg:grid-cols-2">
+                  {myOrders.map((order) => (
+                    <TransactionCard key={order.id} order={order} />
+                  ))}
+                </div>
+              ) : (
+                <div className="mt-6 rounded-[1.4rem] border border-dashed border-[var(--line)] bg-white/[0.03] p-8 text-center">
+                  <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[var(--gold)]/10 text-[var(--gold)]">
+                    <Receipt size={22} />
+                  </div>
+                  <h4 className="mt-4 font-display text-3xl text-[var(--text-primary)]">No transactions yet</h4>
+                  <p className="mt-3 text-sm leading-7 text-[var(--text-secondary)]">
+                    Your Flutterwave payment history will appear here once you complete an order from this account.
+                  </p>
+                </div>
+              )}
             </div>
           </section>
         ) : null}
@@ -620,6 +665,56 @@ function SummaryTile({ label, value }) {
       <p className="text-xs uppercase tracking-[0.22em] text-[var(--text-secondary)]">{label}</p>
       <p className="mt-2 font-display text-2xl text-[var(--gold-soft)]">{value}</p>
     </div>
+  );
+}
+
+function TransactionCard({ order }) {
+  return (
+    <article className="rounded-[1.5rem] border border-[var(--line)] bg-white/[0.03] p-5">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <p className="text-xs uppercase tracking-[0.24em] text-[var(--accent-green)]">{order.orderRef}</p>
+          <h4 className="mt-2 font-display text-3xl text-[var(--text-primary)]">{formatPrice(order.totalAmount)}</h4>
+          <p className="mt-1 text-sm text-[var(--text-secondary)]">Created {formatDateTime(order.createdAt)}</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <StatusPill label={titleCase(order.paymentStatus)} tone={order.paymentStatus === 'paid' ? 'success' : 'neutral'} />
+          <StatusPill label={titleCase(order.fulfilmentStatus)} tone="neutral" />
+        </div>
+      </div>
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-3">
+        <MetaBlock label="Payment method" value="Flutterwave" />
+        <MetaBlock label="Items" value={String(order.items?.length || 0)} />
+        <MetaBlock label="Paid at" value={formatDateTime(order.paidAt)} />
+      </div>
+
+      <div className="mt-4 rounded-[1.2rem] border border-[var(--line)] bg-[#111314] p-4">
+        <p className="text-xs uppercase tracking-[0.18em] text-[var(--text-secondary)]">Delivery address</p>
+        <p className="mt-2 text-sm leading-6 text-[var(--text-primary)]">{order.shippingAddress}</p>
+      </div>
+    </article>
+  );
+}
+
+function MetaBlock({ label, value }) {
+  return (
+    <div className="rounded-[1.1rem] border border-[var(--line)] bg-[#111314] px-4 py-3">
+      <p className="text-xs uppercase tracking-[0.18em] text-[var(--text-secondary)]">{label}</p>
+      <p className="mt-2 text-sm font-medium text-[var(--text-primary)]">{value}</p>
+    </div>
+  );
+}
+
+function StatusPill({ label, tone = 'neutral' }) {
+  const toneClass = tone === 'success'
+    ? 'border-emerald-500/25 bg-emerald-500/10 text-emerald-200'
+    : 'border-[var(--line)] bg-white/[0.04] text-[var(--text-primary)]';
+
+  return (
+    <span className={`rounded-full border px-3 py-1 text-xs uppercase tracking-[0.18em] ${toneClass}`}>
+      {label}
+    </span>
   );
 }
 

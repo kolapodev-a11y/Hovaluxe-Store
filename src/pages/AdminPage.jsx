@@ -9,6 +9,7 @@ import {
   Settings2,
   ShieldAlert,
   ShoppingBag,
+  Store,
   Trash2,
 } from 'lucide-react';
 import { Link, Navigate } from 'react-router-dom';
@@ -24,7 +25,6 @@ const initialSummary = {
   productsCount: 0,
   lowStockCount: 0,
   flutterwaveOrders: 0,
-  whatsappOrders: 0,
   paidRevenue: 0,
 };
 
@@ -44,12 +44,12 @@ const sectionMeta = {
     description: 'Overview of storefront activity, sales performance, and recent orders.',
   },
   products: {
-    title: 'Products management',
+    title: 'Product Management',
     description: 'View, add, edit, and remove products from the storefront catalog.',
   },
   orders: {
-    title: 'Orders / payment history',
-    description: 'Track payment records, customer details, and fulfilment progress.',
+    title: 'Orders',
+    description: 'Track Flutterwave payment records, customer details, and fulfilment progress.',
   },
   settings: {
     title: 'Settings',
@@ -67,7 +67,6 @@ export function AdminPage() {
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
   const [storeConfig, setStoreConfig] = useState(initialConfig);
-  const [orderFilter, setOrderFilter] = useState('all');
   const [modalOpen, setModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [savingOrderId, setSavingOrderId] = useState('');
@@ -107,11 +106,6 @@ export function AdminPage() {
   useEffect(() => {
     loadDashboard();
   }, [token, isAdmin]);
-
-  const filteredOrders = useMemo(() => {
-    if (orderFilter === 'all') return orders;
-    return orders.filter((order) => order.paymentMethod === orderFilter);
-  }, [orders, orderFilter]);
 
   const saveProduct = async (product) => {
     try {
@@ -204,95 +198,114 @@ export function AdminPage() {
   return (
     <div className="min-h-screen bg-[var(--bg)]">
       <div className="mx-auto flex min-h-screen max-w-7xl gap-6 px-4 py-6 md:px-6 lg:px-8">
-        <aside className="hidden w-72 shrink-0 rounded-[2rem] border border-[var(--line)] bg-[#0c0d0d] p-5 lg:flex lg:flex-col">
-          <Link to="/" className="block border-b border-[var(--line)] pb-5">
-            <p className="font-display text-3xl text-[var(--text-primary)]">{brand.name}</p>
-            <p className="mt-1 text-sm text-[var(--text-secondary)]">Store operations center</p>
-          </Link>
-
-          <nav className="mt-5 space-y-2 text-sm">
-            <SidebarItem label="Dashboard" active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} icon={<BarChart3 size={16} />} />
-            <SidebarItem label="Products management" active={activeTab === 'products'} onClick={() => setActiveTab('products')} icon={<Boxes size={16} />} />
-            <SidebarItem label="Orders / payments" active={activeTab === 'orders'} onClick={() => setActiveTab('orders')} icon={<ShoppingBag size={16} />} />
-            <SidebarItem label="Settings" active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} icon={<Settings2 size={16} />} />
-          </nav>
-
-          <div className="mt-auto border-t border-[var(--line)] pt-5">
-            <button
-              type="button"
-              onClick={logout}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-[var(--line)] px-4 py-3 text-sm text-[var(--text-primary)]"
-            >
-              <LogOut size={16} />
-              Logout
-            </button>
-          </div>
-        </aside>
-
-        <div className="min-w-0 flex-1 rounded-[2rem] border border-[var(--line)] bg-[#0c0d0d] p-5 md:p-6">
-          <div className="flex flex-col gap-4 border-b border-[var(--line)] pb-5 xl:flex-row xl:items-start xl:justify-between">
-            <div>
-              <p className="text-xs uppercase tracking-[0.24em] text-[var(--accent-green)]">Admin panel</p>
-              <h1 className="mt-2 font-display text-4xl text-[var(--text-primary)]">{currentSection.title}</h1>
-              <p className="mt-2 max-w-2xl text-sm leading-7 text-[var(--text-secondary)]">{currentSection.description}</p>
-              <p className="mt-3 text-sm text-[var(--text-secondary)]">Signed in as {user?.name || brand.name}</p>
-              <p className="mt-1 text-sm break-all text-[var(--text-secondary)]">Admin account: {user?.email}</p>
+        {/* Desktop Sidebar */}
+        <aside className="hidden w-64 shrink-0 lg:flex lg:flex-col">
+          <div className="flex flex-1 flex-col rounded-[2rem] border border-[var(--line)] bg-[#0c0d0d] p-5">
+            {/* Brand + Back to Store */}
+            <div className="border-b border-[var(--line)] pb-5">
+              <p className="font-display text-2xl text-[var(--text-primary)]">{brand.name}</p>
+              <p className="mt-1 text-xs text-[var(--text-secondary)]">Admin Panel</p>
+              <Link
+                to="/"
+                className="mt-4 inline-flex items-center gap-2 text-sm text-[var(--text-secondary)] transition hover:text-[var(--text-primary)]"
+              >
+                <Store size={14} />
+                Back to Store
+              </Link>
             </div>
 
-            <div className="flex flex-wrap gap-3">
-              <button
-                type="button"
-                onClick={() => {
-                  setEditingProduct(null);
-                  setModalOpen(true);
-                  setActiveTab('products');
-                }}
-                className="inline-flex items-center gap-2 rounded-full bg-[var(--gold)] px-5 py-3 text-sm font-semibold text-[#111]"
-              >
-                <PackagePlus size={16} />
-                Add product
-              </button>
+            {/* Navigation sections */}
+            <nav className="mt-5 flex-1 space-y-1.5 text-sm">
+              <SidebarItem label="Dashboard" active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} icon={<BarChart3 size={15} />} />
+              <SidebarItem label="Products" active={activeTab === 'products'} onClick={() => setActiveTab('products')} icon={<Boxes size={15} />} />
+              <SidebarItem label="Orders" active={activeTab === 'orders'} onClick={() => setActiveTab('orders')} icon={<ShoppingBag size={15} />} />
+              <SidebarItem label="Settings" active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} icon={<Settings2 size={15} />} />
+            </nav>
+
+            {/* Admin info + Logout at bottom */}
+            <div className="mt-auto space-y-3 border-t border-[var(--line)] pt-5">
+              <div className="rounded-[1.2rem] border border-[var(--line)] bg-white/[0.03] p-3 text-xs text-[var(--text-secondary)]">
+                <p className="font-medium text-[var(--text-primary)]">{user?.name || brand.name}</p>
+                <p className="mt-1 break-all">{user?.email}</p>
+              </div>
               <button
                 type="button"
                 onClick={logout}
-                className="inline-flex items-center gap-2 rounded-full border border-[var(--line)] px-5 py-3 text-sm text-[var(--text-primary)] lg:hidden"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-rose-500/25 bg-rose-500/10 px-4 py-2.5 text-sm text-rose-200 transition hover:border-rose-500/40 hover:bg-rose-500/20"
               >
-                <LogOut size={16} />
+                <LogOut size={14} />
+                Logout
+              </button>
+            </div>
+          </div>
+        </aside>
+
+        {/* Main content area */}
+        <div className="min-w-0 flex-1 rounded-[2rem] border border-[var(--line)] bg-[#0c0d0d] p-5 md:p-6">
+          {/* Page header */}
+          <div className="flex flex-col gap-4 border-b border-[var(--line)] pb-5 xl:flex-row xl:items-start xl:justify-between">
+            <div>
+              <p className="text-xs uppercase tracking-[0.24em] text-[var(--accent-green)]">Admin Panel</p>
+              <h1 className="mt-2 font-display text-3xl text-[var(--text-primary)]">{currentSection.title}</h1>
+              <p className="mt-1 max-w-2xl text-sm leading-6 text-[var(--text-secondary)]">{currentSection.description}</p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3">
+              {activeTab === 'products' ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingProduct(null);
+                    setModalOpen(true);
+                  }}
+                  className="inline-flex items-center gap-2 rounded-full bg-[var(--gold)] px-5 py-2.5 text-sm font-semibold text-[#111]"
+                >
+                  <PackagePlus size={15} />
+                  Add product
+                </button>
+              ) : null}
+              <button
+                type="button"
+                onClick={logout}
+                className="inline-flex items-center gap-2 rounded-full border border-rose-500/25 bg-rose-500/10 px-5 py-2.5 text-sm text-rose-200 lg:hidden"
+              >
+                <LogOut size={14} />
                 Logout
               </button>
             </div>
           </div>
 
-          <div className="mt-6 flex flex-wrap gap-3 lg:hidden">
-            <SidebarItem label="Dashboard" active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} icon={<BarChart3 size={16} />} compact />
-            <SidebarItem label="Products" active={activeTab === 'products'} onClick={() => setActiveTab('products')} icon={<Boxes size={16} />} compact />
-            <SidebarItem label="Orders" active={activeTab === 'orders'} onClick={() => setActiveTab('orders')} icon={<ShoppingBag size={16} />} compact />
-            <SidebarItem label="Settings" active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} icon={<Settings2 size={16} />} compact />
+          {/* Mobile navigation tabs */}
+          <div className="mt-5 flex flex-wrap gap-2 lg:hidden">
+            <SidebarItem label="Dashboard" active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} icon={<BarChart3 size={14} />} compact />
+            <SidebarItem label="Products" active={activeTab === 'products'} onClick={() => setActiveTab('products')} icon={<Boxes size={14} />} compact />
+            <SidebarItem label="Orders" active={activeTab === 'orders'} onClick={() => setActiveTab('orders')} icon={<ShoppingBag size={14} />} compact />
+            <SidebarItem label="Settings" active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} icon={<Settings2 size={14} />} compact />
           </div>
 
           {error ? (
-            <div className="mt-6 rounded-[1.4rem] border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+            <div className="mt-5 rounded-[1.4rem] border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
               {error}
             </div>
           ) : null}
 
           {loading ? (
             <div className="mt-8 flex items-center justify-center rounded-[1.5rem] border border-[var(--line)] bg-white/[0.03] p-8 text-sm text-[var(--text-secondary)]">
-              <LoaderCircle size={18} className="mr-2 animate-spin" /> Loading dashboard...
+              <LoaderCircle size={18} className="mr-2 animate-spin" /> Loading...
             </div>
           ) : null}
 
+          {/* Dashboard */}
           {!loading && activeTab === 'dashboard' ? (
             <div className="mt-6 space-y-6">
-              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                 <StatCard label="Products" value={summary.productsCount} helper="Active catalog items" />
                 <StatCard label="Low stock" value={summary.lowStockCount} helper="Needs attention" />
-                <StatCard label="Flutterwave" value={summary.flutterwaveOrders} helper="Online orders" />
-                <StatCard label="WhatsApp" value={summary.whatsappOrders} helper="Existing manual records" />
-                <StatCard label="Revenue" value={formatPrice(summary.paidRevenue)} helper="Paid + recorded orders" />
+                <StatCard label="Orders" value={summary.flutterwaveOrders} helper="Flutterwave orders" />
+                <StatCard label="Revenue" value={formatPrice(summary.paidRevenue)} helper="Paid orders only" />
               </div>
-              <div className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
-                <Panel title="Recent orders" subtitle="Latest activity across payment and fulfilment updates">
+              <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
+                <Panel title="Recent orders" subtitle="Latest Flutterwave payment activity">
                   {orders.length ? (
                     <div className="space-y-3">
                       {orders.slice(0, 6).map((order) => (
@@ -300,7 +313,7 @@ export function AdminPage() {
                           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                             <div>
                               <p className="text-sm font-medium text-[var(--text-primary)]">{order.customerName}</p>
-                              <p className="mt-1 text-sm text-[var(--text-secondary)]">{order.orderRef} • {titleCase(order.paymentMethod)}</p>
+                              <p className="mt-1 text-sm text-[var(--text-secondary)]">{order.orderRef}</p>
                               <p className="mt-1 text-xs uppercase tracking-[0.18em] text-[var(--text-secondary)]">{formatDateTime(order.createdAt)}</p>
                             </div>
                             <div className="flex flex-wrap items-center gap-2">
@@ -317,121 +330,126 @@ export function AdminPage() {
                   )}
                 </Panel>
 
-                <Panel title="Store settings snapshot" subtitle="Current live business settings used by the storefront">
-                  <div className="space-y-3 text-sm leading-7 text-[var(--text-secondary)]">
-                    <div className="rounded-[1.2rem] border border-[var(--line)] bg-white/[0.03] p-4">Business name: <strong className="text-[var(--text-primary)]">{storeConfig.businessName}</strong></div>
-                    <div className="rounded-[1.2rem] border border-[var(--line)] bg-white/[0.03] p-4">WhatsApp: <strong className="text-[var(--text-primary)]">{storeConfig.whatsappNumber || 'Not set'}</strong></div>
-                    <div className="rounded-[1.2rem] border border-[var(--line)] bg-white/[0.03] p-4">Support email: <strong className="text-[var(--text-primary)]">{storeConfig.supportEmail || 'Not set'}</strong></div>
-                    <div className="rounded-[1.2rem] border border-[var(--line)] bg-white/[0.03] p-4">Delivery fee: <strong className="text-[var(--text-primary)]">{formatPrice(storeConfig.deliveryFee || 0)}</strong></div>
+                <Panel title="Store snapshot" subtitle="Current live settings">
+                  <div className="space-y-3 text-sm text-[var(--text-secondary)]">
+                    <InfoRow label="Business" value={storeConfig.businessName} />
+                    <InfoRow label="WhatsApp" value={storeConfig.whatsappNumber || 'Not set'} />
+                    <InfoRow label="Support email" value={storeConfig.supportEmail || 'Not set'} />
+                    <InfoRow label="Delivery fee" value={formatPrice(storeConfig.deliveryFee || 0)} />
                   </div>
                 </Panel>
               </div>
             </div>
           ) : null}
 
+          {/* Products */}
           {!loading && activeTab === 'products' ? (
             <div className="mt-6 space-y-4">
+              {/* Add product CTA on mobile */}
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-[var(--text-secondary)]">{products.length} product{products.length !== 1 ? 's' : ''} in catalog</p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingProduct(null);
+                    setModalOpen(true);
+                  }}
+                  className="inline-flex items-center gap-2 rounded-full bg-[var(--gold)] px-4 py-2 text-sm font-semibold text-[#111] lg:hidden"
+                >
+                  <PackagePlus size={14} />
+                  Add product
+                </button>
+              </div>
+
               {products.length ? (
                 products.map((product) => {
                   const gallery = getProductImages(product);
                   return (
-                    <div key={product.id} className="grid gap-4 rounded-[1.5rem] border border-[var(--line)] bg-white/[0.03] p-4 lg:grid-cols-[120px_1fr_auto] lg:items-center">
-                      <img src={gallery[0]} alt={product.name} className="h-28 w-full rounded-[1rem] object-cover lg:w-[120px]" />
+                    <div key={product.id} className="grid gap-4 rounded-[1.5rem] border border-[var(--line)] bg-white/[0.03] p-4 lg:grid-cols-[100px_1fr_auto] lg:items-center">
+                      <img src={gallery[0]} alt={product.name} className="h-24 w-full rounded-[1rem] object-cover lg:h-[100px] lg:w-[100px]" />
                       <div>
                         <div className="flex flex-wrap items-center gap-2">
-                          <h3 className="font-display text-3xl text-[var(--text-primary)]">{product.name}</h3>
+                          <h3 className="font-display text-2xl text-[var(--text-primary)]">{product.name}</h3>
                           <Badge value={product.status} />
-                          {product.featured ? <Badge value="featured">Featured</Badge> : null}
-                          <span className="rounded-full border border-[var(--line)] px-3 py-1 text-xs text-[var(--text-secondary)]">{gallery.length} image{gallery.length > 1 ? 's' : ''}</span>
+                          <span className="rounded-full border border-[var(--line)] px-2 py-0.5 text-xs text-[var(--text-secondary)]">{gallery.length} img{gallery.length > 1 ? 's' : ''}</span>
                         </div>
-                        <p className="mt-2 text-sm text-[var(--text-secondary)]">{product.category} • {product.volume || 'Standard size'} • SKU {product.sku || '—'}</p>
-                        <p className="mt-2 text-sm leading-7 text-[var(--text-secondary)]">{product.description}</p>
-                        <div className="mt-3 flex flex-wrap gap-4 text-sm text-[var(--text-secondary)]">
+                        <p className="mt-1 text-sm text-[var(--text-secondary)]">{product.category}{product.volume ? ` • ${product.volume}` : ''}{product.sku ? ` • SKU ${product.sku}` : ''}</p>
+                        <p className="mt-1 line-clamp-2 text-sm leading-6 text-[var(--text-secondary)]">{product.description}</p>
+                        <div className="mt-2 flex flex-wrap gap-4 text-sm">
                           <span>Price: <strong className="text-[var(--gold)]">{formatPrice(product.price)}</strong></span>
-                          <span>Inventory: <strong className="text-[var(--text-primary)]">{product.inventoryQuantity}</strong></span>
-                          <span>Visibility: <strong className="text-[var(--text-primary)]">{product.isActive ? 'Visible' : 'Hidden'}</strong></span>
+                          <span className="text-[var(--text-secondary)]">Qty: <strong className="text-[var(--text-primary)]">{product.inventoryQuantity}</strong></span>
+                          <span className="text-[var(--text-secondary)]">Visibility: <strong className="text-[var(--text-primary)]">{product.isActive ? 'Visible' : 'Hidden'}</strong></span>
                         </div>
                       </div>
-                      <div className="flex flex-wrap gap-3 lg:justify-end">
+                      <div className="flex flex-wrap gap-3 lg:flex-col lg:items-end">
                         <button
                           type="button"
                           onClick={() => {
                             setEditingProduct(product);
                             setModalOpen(true);
                           }}
-                          className="inline-flex items-center gap-2 rounded-full border border-[var(--line)] px-4 py-2 text-sm text-[var(--text-primary)]"
+                          className="inline-flex items-center gap-2 rounded-full border border-[var(--line)] px-4 py-2 text-sm text-[var(--text-primary)] transition hover:border-[var(--gold)]/35"
                         >
-                          <Pencil size={14} /> Edit
+                          <Pencil size={13} /> Edit
                         </button>
-                        <button type="button" onClick={() => deleteProduct(product.id)} className="inline-flex items-center gap-2 rounded-full border border-rose-500/30 px-4 py-2 text-sm text-rose-200">
-                          <Trash2 size={14} /> Delete
+                        <button type="button" onClick={() => deleteProduct(product.id)} className="inline-flex items-center gap-2 rounded-full border border-rose-500/30 px-4 py-2 text-sm text-rose-200 transition hover:bg-rose-500/10">
+                          <Trash2 size={13} /> Delete
                         </button>
                       </div>
                     </div>
                   );
                 })
               ) : (
-                <EmptyState message="No products found. Add your first product to populate the catalog." />
+                <EmptyState message="No products found. Click 'Add product' to populate the catalog." />
               )}
             </div>
           ) : null}
 
+          {/* Orders — Flutterwave only */}
           {!loading && activeTab === 'orders' ? (
             <div className="mt-6 space-y-4">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="flex flex-wrap gap-3">
-                  {[
-                    ['all', 'All orders'],
-                    ['flutterwave', 'Flutterwave'],
-                    ['whatsapp_manual', 'WhatsApp'],
-                  ].map(([value, label]) => (
-                    <button key={value} type="button" onClick={() => setOrderFilter(value)} className={`rounded-full border px-4 py-2 text-sm ${orderFilter === value ? 'border-[var(--gold)]/30 bg-[var(--gold)] text-[#111]' : 'border-[var(--line)] text-[var(--text-primary)]'}`}>
-                      {label}
-                    </button>
-                  ))}
-                </div>
-              </div>
+              <p className="text-sm text-[var(--text-secondary)]">{orders.length} order{orders.length !== 1 ? 's' : ''} found</p>
 
-              {filteredOrders.length ? (
-                filteredOrders.map((order) => (
+              {orders.length ? (
+                orders.map((order) => (
                   <div key={order.id} className="rounded-[1.5rem] border border-[var(--line)] bg-white/[0.03] p-4">
                     <div className="grid gap-4 xl:grid-cols-[1fr_auto] xl:items-start">
                       <div>
                         <div className="flex flex-wrap items-center gap-2">
-                          <h3 className="font-display text-3xl text-[var(--text-primary)]">{order.customerName}</h3>
+                          <h3 className="font-display text-2xl text-[var(--text-primary)]">{order.customerName}</h3>
                           <Badge value={order.paymentStatus} />
                           <Badge value={order.fulfilmentStatus} />
                         </div>
-                        <p className="mt-2 text-sm text-[var(--text-secondary)]">{order.orderRef} • {titleCase(order.paymentMethod)} • {formatDateTime(order.createdAt)}</p>
-                        <p className="mt-2 text-sm break-words text-[var(--text-secondary)]">Phone: {order.customerPhone} • Email: {order.customerEmail || '—'}</p>
-                        <p className="mt-2 text-sm leading-7 text-[var(--text-secondary)]">Address: {order.shippingAddress}</p>
-                        {order.notes ? <p className="mt-2 text-sm leading-7 text-[var(--text-secondary)]">Customer note: {order.notes}</p> : null}
-                        {order.adminNote ? <p className="mt-2 text-sm leading-7 text-[var(--text-secondary)]">Admin note: {order.adminNote}</p> : null}
-                        <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                        <p className="mt-1 text-sm text-[var(--text-secondary)]">{order.orderRef} • {formatDateTime(order.createdAt)}</p>
+                        <p className="mt-1 text-sm text-[var(--text-secondary)]">Phone: {order.customerPhone}</p>
+                        {order.customerEmail ? <p className="mt-0.5 text-sm text-[var(--text-secondary)]">Email: {order.customerEmail}</p> : null}
+                        <p className="mt-1 text-sm leading-6 text-[var(--text-secondary)]">Address: {order.shippingAddress}</p>
+                        {order.notes ? <p className="mt-1 text-sm leading-6 text-[var(--text-secondary)]">Note: {order.notes}</p> : null}
+                        <div className="mt-3 grid gap-2 md:grid-cols-2 xl:grid-cols-3">
                           {order.items.map((item) => (
                             <div key={`${order.id}-${item.name}`} className="rounded-[1.2rem] border border-[var(--line)] bg-[#111314] p-3 text-sm text-[var(--text-secondary)]">
                               <p className="text-[var(--text-primary)]">{item.name}</p>
-                              <p className="mt-1">{item.quantity} × {formatPrice(item.price)}</p>
-                              <p className="mt-1 text-[var(--gold)]">{formatPrice(item.total)}</p>
+                              <p className="mt-0.5">{item.quantity} × {formatPrice(item.price)}</p>
+                              <p className="mt-0.5 text-[var(--gold)]">{formatPrice(item.total)}</p>
                             </div>
                           ))}
                         </div>
                       </div>
 
-                      <div className="grid gap-3 xl:w-[260px]">
-                        <div className="rounded-[1.2rem] border border-[var(--line)] bg-[#111314] p-4 text-sm text-[var(--text-secondary)]">
-                          <p>Total</p>
-                          <p className="mt-2 font-display text-3xl text-[var(--gold)]">{formatPrice(order.totalAmount)}</p>
+                      <div className="grid gap-3 xl:w-[240px]">
+                        <div className="rounded-[1.2rem] border border-[var(--line)] bg-[#111314] p-4">
+                          <p className="text-xs text-[var(--text-secondary)]">Total</p>
+                          <p className="mt-1 font-display text-2xl text-[var(--gold)]">{formatPrice(order.totalAmount)}</p>
                         </div>
-                        <label className="space-y-2 text-sm text-[var(--text-primary)]">
+                        <label className="space-y-1.5 text-sm text-[var(--text-primary)]">
                           <span>Payment status</span>
                           <select className="input-style" value={order.paymentStatus} onChange={(e) => updateOrder(order.id, { paymentStatus: e.target.value })} disabled={savingOrderId === order.id}>
-                            {['initiated', 'pending', 'paid', 'failed', 'cancelled', 'recorded'].map((status) => (
+                            {['initiated', 'pending', 'paid', 'failed', 'cancelled'].map((status) => (
                               <option key={status} value={status}>{titleCase(status)}</option>
                             ))}
                           </select>
                         </label>
-                        <label className="space-y-2 text-sm text-[var(--text-primary)]">
+                        <label className="space-y-1.5 text-sm text-[var(--text-primary)]">
                           <span>Fulfilment status</span>
                           <select className="input-style" value={order.fulfilmentStatus} onChange={(e) => updateOrder(order.id, { fulfilmentStatus: e.target.value })} disabled={savingOrderId === order.id}>
                             {['new', 'processing', 'ready', 'shipped', 'delivered', 'cancelled'].map((status) => (
@@ -444,11 +462,12 @@ export function AdminPage() {
                   </div>
                 ))
               ) : (
-                <EmptyState message="No orders match the current filter." />
+                <EmptyState message="No Flutterwave orders yet." />
               )}
             </div>
           ) : null}
 
+          {/* Settings */}
           {!loading && activeTab === 'settings' ? (
             <div className="mt-6">
               <Panel title="Store settings" subtitle="These values control what customers see on the storefront and how checkout behaves.">
@@ -506,8 +525,8 @@ function SidebarItem({ label, icon, active, onClick, compact = false }) {
       onClick={onClick}
       className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm transition ${compact ? '' : 'w-full'} ${
         active
-          ? 'border-[var(--gold)]/30 bg-[var(--gold)] text-[#111]'
-          : 'border-[var(--line)] text-[var(--text-primary)]'
+          ? 'border-[var(--gold)]/30 bg-[var(--gold)] text-[#111] font-medium'
+          : 'border-[var(--line)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
       }`}
     >
       {icon}
@@ -520,10 +539,19 @@ function Panel({ title, subtitle, children }) {
   return (
     <div className="rounded-[1.6rem] border border-[var(--line)] bg-white/[0.03] p-5">
       <div className="mb-5">
-        <p className="text-lg font-semibold text-[var(--text-primary)]">{title}</p>
+        <p className="text-base font-semibold text-[var(--text-primary)]">{title}</p>
         {subtitle ? <p className="mt-1 text-sm text-[var(--text-secondary)]">{subtitle}</p> : null}
       </div>
       {children}
+    </div>
+  );
+}
+
+function InfoRow({ label, value }) {
+  return (
+    <div className="rounded-[1.2rem] border border-[var(--line)] bg-white/[0.03] px-4 py-3">
+      <span className="text-xs uppercase tracking-[0.18em] text-[var(--text-secondary)]">{label}</span>
+      <p className="mt-1 text-sm font-medium text-[var(--text-primary)]">{value}</p>
     </div>
   );
 }

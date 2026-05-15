@@ -1,26 +1,36 @@
-import { Link, NavLink } from 'react-router-dom';
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { Gem, LogOut, Menu, Shield, ShoppingBag, User, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { brand } from '../data/store';
 import { formatRoleLabel } from '../utils/auth';
 import { useAuth } from '../context/AuthContext';
 
+function scrollToSection(sectionId) {
+  if (typeof document === 'undefined' || !sectionId) return false;
+  const target = document.getElementById(sectionId);
+  if (!target) return false;
+  window.requestAnimationFrame(() => {
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+  return true;
+}
+
 export function Header({
   cartCount,
   onCartOpen,
-  canAccessCheckout = false,
   showTransactionSection = false,
 }) {
   const [open, setOpen] = useState(false);
   const { user, isAuthenticated, isAdmin, logout } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const navItems = useMemo(
     () => [
       { label: 'Store', href: '/', type: 'route' },
-      ...(canAccessCheckout ? [{ label: 'Payments', href: '#payments', type: 'anchor' }] : []),
-      ...(showTransactionSection ? [{ label: 'Transactions', href: '#transactions', type: 'anchor' }] : []),
+      ...(showTransactionSection ? [{ label: 'Transactions', sectionId: 'transactions', type: 'section' }] : []),
     ],
-    [canAccessCheckout, showTransactionSection],
+    [showTransactionSection],
   );
 
   const navLinkClass = ({ isActive }) =>
@@ -31,6 +41,16 @@ export function Header({
     }`;
 
   const closeMenu = () => setOpen(false);
+
+  const handleSectionNavigation = (sectionId) => {
+    closeMenu();
+
+    if (location.pathname === '/' && scrollToSection(sectionId)) {
+      return;
+    }
+
+    navigate('/', { state: { scrollTo: sectionId } });
+  };
 
   return (
     <header className="sticky top-0 z-40 border-b border-[var(--line)] bg-[rgba(9,10,11,0.86)] backdrop-blur-xl">
@@ -54,9 +74,14 @@ export function Header({
                 {item.label}
               </NavLink>
             ) : (
-              <a key={item.label} href={item.href} className="text-[var(--text-secondary)] transition hover:text-[var(--text-primary)]">
+              <button
+                key={item.label}
+                type="button"
+                onClick={() => handleSectionNavigation(item.sectionId)}
+                className="text-[var(--text-secondary)] transition hover:text-[var(--text-primary)]"
+              >
                 {item.label}
-              </a>
+              </button>
             ),
           )}
         </nav>
@@ -105,14 +130,14 @@ export function Header({
                       {item.label}
                     </NavLink>
                   ) : (
-                    <a
+                    <button
                       key={item.label}
-                      href={item.href}
-                      onClick={closeMenu}
-                      className="rounded-[1.2rem] border border-[var(--line)] bg-white/[0.03] px-4 py-3 text-sm text-[var(--text-secondary)] transition hover:text-[var(--text-primary)]"
+                      type="button"
+                      onClick={() => handleSectionNavigation(item.sectionId)}
+                      className="rounded-[1.2rem] border border-[var(--line)] bg-white/[0.03] px-4 py-3 text-left text-sm text-[var(--text-secondary)] transition hover:text-[var(--text-primary)]"
                     >
                       {item.label}
-                    </a>
+                    </button>
                   ),
                 )}
 

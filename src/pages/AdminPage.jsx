@@ -10,7 +10,6 @@ import {
   ShieldAlert,
   ShoppingBag,
   Trash2,
-  WalletCards,
 } from 'lucide-react';
 import { Link, Navigate } from 'react-router-dom';
 import { brand, getProductImages } from '../data/store';
@@ -19,7 +18,6 @@ import { formatDateTime, formatPrice, titleCase } from '../utils/format';
 import { Badge } from '../components/Badge';
 import { ProductFormModal } from '../components/ProductFormModal';
 import { StatCard } from '../components/StatCard';
-import { WhatsAppOrderModal } from '../components/WhatsAppOrderModal';
 import { api } from '../lib/api';
 
 const initialSummary = {
@@ -40,6 +38,25 @@ const initialConfig = {
   flutterwavePublicKey: '',
 };
 
+const sectionMeta = {
+  dashboard: {
+    title: 'Dashboard',
+    description: 'Overview of storefront activity, sales performance, and recent orders.',
+  },
+  products: {
+    title: 'Products management',
+    description: 'View, add, edit, and remove products from the storefront catalog.',
+  },
+  orders: {
+    title: 'Orders / payment history',
+    description: 'Track payment records, customer details, and fulfilment progress.',
+  },
+  settings: {
+    title: 'Settings',
+    description: 'Update live storefront settings used across customer-facing pages.',
+  },
+};
+
 export function AdminPage() {
   const { session, token, user, isAuthenticated, isAdmin, logout } = useAuth();
   const [error, setError] = useState('');
@@ -53,8 +70,9 @@ export function AdminPage() {
   const [orderFilter, setOrderFilter] = useState('all');
   const [modalOpen, setModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
-  const [recordModalOpen, setRecordModalOpen] = useState(false);
   const [savingOrderId, setSavingOrderId] = useState('');
+
+  const currentSection = sectionMeta[activeTab] || sectionMeta.dashboard;
 
   const loadDashboard = async () => {
     if (!token || !isAdmin) {
@@ -128,20 +146,6 @@ export function AdminPage() {
     }
   };
 
-  const saveWhatsAppOrder = async (payload) => {
-    try {
-      setBusy(true);
-      await api.recordWhatsAppOrder(token, payload);
-      setRecordModalOpen(false);
-      await loadDashboard();
-      setActiveTab('orders');
-    } catch (saveError) {
-      setError(saveError.message || 'Unable to record WhatsApp order.');
-    } finally {
-      setBusy(false);
-    }
-  };
-
   const updateOrder = async (id, payload) => {
     try {
       setSavingOrderId(id);
@@ -200,27 +204,41 @@ export function AdminPage() {
   return (
     <div className="min-h-screen bg-[var(--bg)]">
       <div className="mx-auto flex min-h-screen max-w-7xl gap-6 px-4 py-6 md:px-6 lg:px-8">
-        <aside className="hidden w-72 shrink-0 rounded-[2rem] border border-[var(--line)] bg-[#0c0d0d] p-5 lg:block">
+        <aside className="hidden w-72 shrink-0 rounded-[2rem] border border-[var(--line)] bg-[#0c0d0d] p-5 lg:flex lg:flex-col">
           <Link to="/" className="block border-b border-[var(--line)] pb-5">
             <p className="font-display text-3xl text-[var(--text-primary)]">{brand.name}</p>
             <p className="mt-1 text-sm text-[var(--text-secondary)]">Store operations center</p>
           </Link>
+
           <nav className="mt-5 space-y-2 text-sm">
             <SidebarItem label="Dashboard" active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} icon={<BarChart3 size={16} />} />
-            <SidebarItem label="Products" active={activeTab === 'products'} onClick={() => setActiveTab('products')} icon={<Boxes size={16} />} />
-            <SidebarItem label="Orders" active={activeTab === 'orders'} onClick={() => setActiveTab('orders')} icon={<ShoppingBag size={16} />} />
+            <SidebarItem label="Products management" active={activeTab === 'products'} onClick={() => setActiveTab('products')} icon={<Boxes size={16} />} />
+            <SidebarItem label="Orders / payments" active={activeTab === 'orders'} onClick={() => setActiveTab('orders')} icon={<ShoppingBag size={16} />} />
             <SidebarItem label="Settings" active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} icon={<Settings2 size={16} />} />
           </nav>
+
+          <div className="mt-auto border-t border-[var(--line)] pt-5">
+            <button
+              type="button"
+              onClick={logout}
+              className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-[var(--line)] px-4 py-3 text-sm text-[var(--text-primary)]"
+            >
+              <LogOut size={16} />
+              Logout
+            </button>
+          </div>
         </aside>
 
         <div className="min-w-0 flex-1 rounded-[2rem] border border-[var(--line)] bg-[#0c0d0d] p-5 md:p-6">
-          <div className="flex flex-col gap-4 border-b border-[var(--line)] pb-5 md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-col gap-4 border-b border-[var(--line)] pb-5 xl:flex-row xl:items-start xl:justify-between">
             <div>
               <p className="text-xs uppercase tracking-[0.24em] text-[var(--accent-green)]">Admin panel</p>
-              <h1 className="mt-2 font-display text-4xl text-[var(--text-primary)]">Manage the storefront</h1>
-              <p className="mt-2 text-sm text-[var(--text-secondary)]">Signed in as {user?.name || brand.name}</p>
-              <p className="mt-1 text-sm text-[var(--text-secondary)]">Admin account: {user?.email}</p>
+              <h1 className="mt-2 font-display text-4xl text-[var(--text-primary)]">{currentSection.title}</h1>
+              <p className="mt-2 max-w-2xl text-sm leading-7 text-[var(--text-secondary)]">{currentSection.description}</p>
+              <p className="mt-3 text-sm text-[var(--text-secondary)]">Signed in as {user?.name || brand.name}</p>
+              <p className="mt-1 text-sm break-all text-[var(--text-secondary)]">Admin account: {user?.email}</p>
             </div>
+
             <div className="flex flex-wrap gap-3">
               <button
                 type="button"
@@ -236,16 +254,8 @@ export function AdminPage() {
               </button>
               <button
                 type="button"
-                onClick={() => setRecordModalOpen(true)}
-                className="inline-flex items-center gap-2 rounded-full border border-[var(--line)] px-5 py-3 text-sm text-[var(--text-primary)]"
-              >
-                <WalletCards size={16} />
-                Record WhatsApp sale
-              </button>
-              <button
-                type="button"
                 onClick={logout}
-                className="inline-flex items-center gap-2 rounded-full border border-[var(--line)] px-5 py-3 text-sm text-[var(--text-primary)]"
+                className="inline-flex items-center gap-2 rounded-full border border-[var(--line)] px-5 py-3 text-sm text-[var(--text-primary)] lg:hidden"
               >
                 <LogOut size={16} />
                 Logout
@@ -278,30 +288,35 @@ export function AdminPage() {
                 <StatCard label="Products" value={summary.productsCount} helper="Active catalog items" />
                 <StatCard label="Low stock" value={summary.lowStockCount} helper="Needs attention" />
                 <StatCard label="Flutterwave" value={summary.flutterwaveOrders} helper="Online orders" />
-                <StatCard label="WhatsApp" value={summary.whatsappOrders} helper="Recorded manually" />
+                <StatCard label="WhatsApp" value={summary.whatsappOrders} helper="Existing manual records" />
                 <StatCard label="Revenue" value={formatPrice(summary.paidRevenue)} helper="Paid + recorded orders" />
               </div>
               <div className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
-                <Panel title="Recent orders" subtitle="Latest activity across Flutterwave and WhatsApp orders">
-                  <div className="space-y-3">
-                    {orders.slice(0, 6).map((order) => (
-                      <div key={order.id} className="rounded-[1.3rem] border border-[var(--line)] bg-white/[0.03] p-4">
-                        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                          <div>
-                            <p className="text-sm font-medium text-[var(--text-primary)]">{order.customerName}</p>
-                            <p className="mt-1 text-sm text-[var(--text-secondary)]">{order.orderRef} • {titleCase(order.paymentMethod)}</p>
-                            <p className="mt-1 text-xs uppercase tracking-[0.18em] text-[var(--text-secondary)]">{formatDateTime(order.createdAt)}</p>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Badge value={order.paymentStatus} />
-                            <Badge value={order.fulfilmentStatus} />
-                            <span className="font-display text-xl text-[var(--gold)]">{formatPrice(order.totalAmount)}</span>
+                <Panel title="Recent orders" subtitle="Latest activity across payment and fulfilment updates">
+                  {orders.length ? (
+                    <div className="space-y-3">
+                      {orders.slice(0, 6).map((order) => (
+                        <div key={order.id} className="rounded-[1.3rem] border border-[var(--line)] bg-white/[0.03] p-4">
+                          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                            <div>
+                              <p className="text-sm font-medium text-[var(--text-primary)]">{order.customerName}</p>
+                              <p className="mt-1 text-sm text-[var(--text-secondary)]">{order.orderRef} • {titleCase(order.paymentMethod)}</p>
+                              <p className="mt-1 text-xs uppercase tracking-[0.18em] text-[var(--text-secondary)]">{formatDateTime(order.createdAt)}</p>
+                            </div>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <Badge value={order.paymentStatus} />
+                              <Badge value={order.fulfilmentStatus} />
+                              <span className="font-display text-xl text-[var(--gold)]">{formatPrice(order.totalAmount)}</span>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <EmptyState message="No orders yet. New payment activity will appear here." />
+                  )}
                 </Panel>
+
                 <Panel title="Store settings snapshot" subtitle="Current live business settings used by the storefront">
                   <div className="space-y-3 text-sm leading-7 text-[var(--text-secondary)]">
                     <div className="rounded-[1.2rem] border border-[var(--line)] bg-white/[0.03] p-4">Business name: <strong className="text-[var(--text-primary)]">{storeConfig.businessName}</strong></div>
@@ -316,37 +331,48 @@ export function AdminPage() {
 
           {!loading && activeTab === 'products' ? (
             <div className="mt-6 space-y-4">
-              {products.map((product) => {
-                const gallery = getProductImages(product);
-                return (
-                  <div key={product.id} className="grid gap-4 rounded-[1.5rem] border border-[var(--line)] bg-white/[0.03] p-4 lg:grid-cols-[120px_1fr_auto] lg:items-center">
-                    <img src={gallery[0]} alt={product.name} className="h-28 w-full rounded-[1rem] object-cover lg:w-[120px]" />
-                    <div>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <h3 className="font-display text-3xl text-[var(--text-primary)]">{product.name}</h3>
-                        <Badge value={product.status} />
-                        {product.featured ? <Badge value="featured">Featured</Badge> : null}
-                        <span className="rounded-full border border-[var(--line)] px-3 py-1 text-xs text-[var(--text-secondary)]">{gallery.length} image{gallery.length > 1 ? 's' : ''}</span>
+              {products.length ? (
+                products.map((product) => {
+                  const gallery = getProductImages(product);
+                  return (
+                    <div key={product.id} className="grid gap-4 rounded-[1.5rem] border border-[var(--line)] bg-white/[0.03] p-4 lg:grid-cols-[120px_1fr_auto] lg:items-center">
+                      <img src={gallery[0]} alt={product.name} className="h-28 w-full rounded-[1rem] object-cover lg:w-[120px]" />
+                      <div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h3 className="font-display text-3xl text-[var(--text-primary)]">{product.name}</h3>
+                          <Badge value={product.status} />
+                          {product.featured ? <Badge value="featured">Featured</Badge> : null}
+                          <span className="rounded-full border border-[var(--line)] px-3 py-1 text-xs text-[var(--text-secondary)]">{gallery.length} image{gallery.length > 1 ? 's' : ''}</span>
+                        </div>
+                        <p className="mt-2 text-sm text-[var(--text-secondary)]">{product.category} • {product.volume || 'Standard size'} • SKU {product.sku || '—'}</p>
+                        <p className="mt-2 text-sm leading-7 text-[var(--text-secondary)]">{product.description}</p>
+                        <div className="mt-3 flex flex-wrap gap-4 text-sm text-[var(--text-secondary)]">
+                          <span>Price: <strong className="text-[var(--gold)]">{formatPrice(product.price)}</strong></span>
+                          <span>Inventory: <strong className="text-[var(--text-primary)]">{product.inventoryQuantity}</strong></span>
+                          <span>Visibility: <strong className="text-[var(--text-primary)]">{product.isActive ? 'Visible' : 'Hidden'}</strong></span>
+                        </div>
                       </div>
-                      <p className="mt-2 text-sm text-[var(--text-secondary)]">{product.category} • {product.volume || 'Standard size'} • SKU {product.sku || '—'}</p>
-                      <p className="mt-2 text-sm leading-7 text-[var(--text-secondary)]">{product.description}</p>
-                      <div className="mt-3 flex flex-wrap gap-4 text-sm text-[var(--text-secondary)]">
-                        <span>Price: <strong className="text-[var(--gold)]">{formatPrice(product.price)}</strong></span>
-                        <span>Inventory: <strong className="text-[var(--text-primary)]">{product.inventoryQuantity}</strong></span>
-                        <span>Visibility: <strong className="text-[var(--text-primary)]">{product.isActive ? 'Visible' : 'Hidden'}</strong></span>
+                      <div className="flex flex-wrap gap-3 lg:justify-end">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingProduct(product);
+                            setModalOpen(true);
+                          }}
+                          className="inline-flex items-center gap-2 rounded-full border border-[var(--line)] px-4 py-2 text-sm text-[var(--text-primary)]"
+                        >
+                          <Pencil size={14} /> Edit
+                        </button>
+                        <button type="button" onClick={() => deleteProduct(product.id)} className="inline-flex items-center gap-2 rounded-full border border-rose-500/30 px-4 py-2 text-sm text-rose-200">
+                          <Trash2 size={14} /> Delete
+                        </button>
                       </div>
                     </div>
-                    <div className="flex flex-wrap gap-3 lg:justify-end">
-                      <button type="button" onClick={() => { setEditingProduct(product); setModalOpen(true); }} className="inline-flex items-center gap-2 rounded-full border border-[var(--line)] px-4 py-2 text-sm text-[var(--text-primary)]">
-                        <Pencil size={14} /> Edit
-                      </button>
-                      <button type="button" onClick={() => deleteProduct(product.id)} className="inline-flex items-center gap-2 rounded-full border border-rose-500/30 px-4 py-2 text-sm text-rose-200">
-                        <Trash2 size={14} /> Delete
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                })
+              ) : (
+                <EmptyState message="No products found. Add your first product to populate the catalog." />
+              )}
             </div>
           ) : null}
 
@@ -364,59 +390,62 @@ export function AdminPage() {
                     </button>
                   ))}
                 </div>
-                <button type="button" onClick={() => setRecordModalOpen(true)} className="rounded-full border border-[var(--line)] px-4 py-2 text-sm text-[var(--text-primary)]">Record WhatsApp sale</button>
               </div>
 
-              {filteredOrders.map((order) => (
-                <div key={order.id} className="rounded-[1.5rem] border border-[var(--line)] bg-white/[0.03] p-4">
-                  <div className="grid gap-4 xl:grid-cols-[1fr_auto] xl:items-start">
-                    <div>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <h3 className="font-display text-3xl text-[var(--text-primary)]">{order.customerName}</h3>
-                        <Badge value={order.paymentStatus} />
-                        <Badge value={order.fulfilmentStatus} />
+              {filteredOrders.length ? (
+                filteredOrders.map((order) => (
+                  <div key={order.id} className="rounded-[1.5rem] border border-[var(--line)] bg-white/[0.03] p-4">
+                    <div className="grid gap-4 xl:grid-cols-[1fr_auto] xl:items-start">
+                      <div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h3 className="font-display text-3xl text-[var(--text-primary)]">{order.customerName}</h3>
+                          <Badge value={order.paymentStatus} />
+                          <Badge value={order.fulfilmentStatus} />
+                        </div>
+                        <p className="mt-2 text-sm text-[var(--text-secondary)]">{order.orderRef} • {titleCase(order.paymentMethod)} • {formatDateTime(order.createdAt)}</p>
+                        <p className="mt-2 text-sm break-words text-[var(--text-secondary)]">Phone: {order.customerPhone} • Email: {order.customerEmail || '—'}</p>
+                        <p className="mt-2 text-sm leading-7 text-[var(--text-secondary)]">Address: {order.shippingAddress}</p>
+                        {order.notes ? <p className="mt-2 text-sm leading-7 text-[var(--text-secondary)]">Customer note: {order.notes}</p> : null}
+                        {order.adminNote ? <p className="mt-2 text-sm leading-7 text-[var(--text-secondary)]">Admin note: {order.adminNote}</p> : null}
+                        <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                          {order.items.map((item) => (
+                            <div key={`${order.id}-${item.name}`} className="rounded-[1.2rem] border border-[var(--line)] bg-[#111314] p-3 text-sm text-[var(--text-secondary)]">
+                              <p className="text-[var(--text-primary)]">{item.name}</p>
+                              <p className="mt-1">{item.quantity} × {formatPrice(item.price)}</p>
+                              <p className="mt-1 text-[var(--gold)]">{formatPrice(item.total)}</p>
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                      <p className="mt-2 text-sm text-[var(--text-secondary)]">{order.orderRef} • {titleCase(order.paymentMethod)} • {formatDateTime(order.createdAt)}</p>
-                      <p className="mt-2 text-sm text-[var(--text-secondary)]">Phone: {order.customerPhone} • Email: {order.customerEmail || '—'}</p>
-                      <p className="mt-2 text-sm leading-7 text-[var(--text-secondary)]">Address: {order.shippingAddress}</p>
-                      {order.notes ? <p className="mt-2 text-sm leading-7 text-[var(--text-secondary)]">Customer note: {order.notes}</p> : null}
-                      {order.adminNote ? <p className="mt-2 text-sm leading-7 text-[var(--text-secondary)]">Admin note: {order.adminNote}</p> : null}
-                      <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-                        {order.items.map((item) => (
-                          <div key={`${order.id}-${item.name}`} className="rounded-[1.2rem] border border-[var(--line)] bg-[#111314] p-3 text-sm text-[var(--text-secondary)]">
-                            <p className="text-[var(--text-primary)]">{item.name}</p>
-                            <p className="mt-1">{item.quantity} × {formatPrice(item.price)}</p>
-                            <p className="mt-1 text-[var(--gold)]">{formatPrice(item.total)}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
 
-                    <div className="grid gap-3 xl:w-[260px]">
-                      <div className="rounded-[1.2rem] border border-[var(--line)] bg-[#111314] p-4 text-sm text-[var(--text-secondary)]">
-                        <p>Total</p>
-                        <p className="mt-2 font-display text-3xl text-[var(--gold)]">{formatPrice(order.totalAmount)}</p>
+                      <div className="grid gap-3 xl:w-[260px]">
+                        <div className="rounded-[1.2rem] border border-[var(--line)] bg-[#111314] p-4 text-sm text-[var(--text-secondary)]">
+                          <p>Total</p>
+                          <p className="mt-2 font-display text-3xl text-[var(--gold)]">{formatPrice(order.totalAmount)}</p>
+                        </div>
+                        <label className="space-y-2 text-sm text-[var(--text-primary)]">
+                          <span>Payment status</span>
+                          <select className="input-style" value={order.paymentStatus} onChange={(e) => updateOrder(order.id, { paymentStatus: e.target.value })} disabled={savingOrderId === order.id}>
+                            {['initiated', 'pending', 'paid', 'failed', 'cancelled', 'recorded'].map((status) => (
+                              <option key={status} value={status}>{titleCase(status)}</option>
+                            ))}
+                          </select>
+                        </label>
+                        <label className="space-y-2 text-sm text-[var(--text-primary)]">
+                          <span>Fulfilment status</span>
+                          <select className="input-style" value={order.fulfilmentStatus} onChange={(e) => updateOrder(order.id, { fulfilmentStatus: e.target.value })} disabled={savingOrderId === order.id}>
+                            {['new', 'processing', 'ready', 'shipped', 'delivered', 'cancelled'].map((status) => (
+                              <option key={status} value={status}>{titleCase(status)}</option>
+                            ))}
+                          </select>
+                        </label>
                       </div>
-                      <label className="space-y-2 text-sm text-[var(--text-primary)]">
-                        <span>Payment status</span>
-                        <select className="input-style" value={order.paymentStatus} onChange={(e) => updateOrder(order.id, { paymentStatus: e.target.value })} disabled={savingOrderId === order.id}>
-                          {['initiated', 'pending', 'paid', 'failed', 'cancelled', 'recorded'].map((status) => (
-                            <option key={status} value={status}>{titleCase(status)}</option>
-                          ))}
-                        </select>
-                      </label>
-                      <label className="space-y-2 text-sm text-[var(--text-primary)]">
-                        <span>Fulfilment status</span>
-                        <select className="input-style" value={order.fulfilmentStatus} onChange={(e) => updateOrder(order.id, { fulfilmentStatus: e.target.value })} disabled={savingOrderId === order.id}>
-                          {['new', 'processing', 'ready', 'shipped', 'delivered', 'cancelled'].map((status) => (
-                            <option key={status} value={status}>{titleCase(status)}</option>
-                          ))}
-                        </select>
-                      </label>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                <EmptyState message="No orders match the current filter." />
+              )}
             </div>
           ) : null}
 
@@ -445,7 +474,7 @@ export function AdminPage() {
                   <Field label="Hero notice" className="md:col-span-2">
                     <input className="input-style" value={storeConfig.heroNotice} onChange={(e) => setStoreConfig((prev) => ({ ...prev, heroNotice: e.target.value }))} />
                   </Field>
-                  <div className="md:col-span-2 flex justify-end">
+                  <div className="flex justify-end md:col-span-2">
                     <button type="submit" disabled={busy} className="rounded-full bg-[var(--gold)] px-5 py-3 text-sm font-semibold text-[#111] disabled:opacity-70">
                       {busy ? 'Saving...' : 'Save settings'}
                     </button>
@@ -465,13 +494,6 @@ export function AdminPage() {
         }}
         onSave={saveProduct}
         product={editingProduct}
-      />
-      <WhatsAppOrderModal
-        open={recordModalOpen}
-        onClose={() => setRecordModalOpen(false)}
-        products={products}
-        onSave={saveWhatsAppOrder}
-        saving={busy}
       />
     </div>
   );
@@ -512,5 +534,13 @@ function Field({ label, children, className = '' }) {
       <span className="text-sm font-medium text-[var(--text-primary)]">{label}</span>
       {children}
     </label>
+  );
+}
+
+function EmptyState({ message }) {
+  return (
+    <div className="rounded-[1.4rem] border border-dashed border-[var(--line)] bg-white/[0.03] px-4 py-8 text-center text-sm text-[var(--text-secondary)]">
+      {message}
+    </div>
   );
 }

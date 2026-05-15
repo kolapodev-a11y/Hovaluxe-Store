@@ -85,7 +85,7 @@ const scrollToSection = (sectionId) => {
 export function StorefrontPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { token, user, isAdmin, isAuthenticated } = useAuth();
+  const { token, user, isAuthenticated } = useAuth();
   const [config, setConfig] = useState(fallbackConfig);
   const [products, setProducts] = useState([]);
   const [cart, setCart] = useLocalStorage('hovaluxe_cart', []);
@@ -158,7 +158,7 @@ export function StorefrontPage() {
     if (featured.length) return featured.slice(0, 3);
     return products.slice(0, 3);
   }, [products]);
-  const showFeaturedSection = Boolean(collectionProducts.length || isAdmin);
+  const showFeaturedSection = Boolean(collectionProducts.length);
 
   const whatsappLink = useMemo(() => {
     const phone = normalizePhoneNumber(config.whatsappNumber);
@@ -228,6 +228,8 @@ export function StorefrontPage() {
   };
 
   const placeOrder = async ({ customerName, customerPhone, customerEmail, shippingAddress, notes, paymentMethod, total }) => {
+    const resolvedCustomerName = user?.name || customerName;
+    const resolvedCustomerEmail = user?.email || customerEmail;
     const itemsSummary = cart
       .map((item) => `${item.name} × ${item.quantity}`)
       .join(', ');
@@ -239,7 +241,7 @@ export function StorefrontPage() {
       }
 
       const orderMessage = encodeURIComponent(
-        `Hello ${brand.name}, I want to place an order.\n\nName: ${customerName}\nPhone: ${customerPhone}\nEmail: ${customerEmail || 'Not provided'}\nAddress: ${shippingAddress}\nItems: ${itemsSummary}\nTotal: ${formatPrice(total)}\nNotes: ${notes || 'None'}\n\nPlease confirm availability and next steps.`,
+        `Hello ${brand.name}, I want to place an order.\n\nName: ${resolvedCustomerName}\nPhone: ${customerPhone}\nEmail: ${resolvedCustomerEmail || 'Not provided'}\nAddress: ${shippingAddress}\nItems: ${itemsSummary}\nTotal: ${formatPrice(total)}\nNotes: ${notes || 'None'}\n\nPlease confirm availability and next steps.`,
       );
 
       const normalizedWhatsAppNumber = normalizePhoneNumber(config.whatsappNumber);
@@ -251,7 +253,7 @@ export function StorefrontPage() {
       return;
     }
 
-    if (!customerEmail) {
+    if (!resolvedCustomerEmail) {
       setNotice('Email address is required for Flutterwave payment.');
       return;
     }
@@ -260,9 +262,9 @@ export function StorefrontPage() {
       setSubmitting(true);
       const response = await api.createFlutterwaveCheckout(
         {
-          customerName,
+          customerName: resolvedCustomerName,
           customerPhone,
-          customerEmail,
+          customerEmail: resolvedCustomerEmail,
           shippingAddress,
           notes,
           items: cart.map((item) => ({
@@ -285,7 +287,12 @@ export function StorefrontPage() {
 
   return (
     <div className="min-h-screen bg-[var(--bg)] text-[var(--text-primary)]">
-      <Header cartCount={cartCount} onCartOpen={() => setCartOpen(true)} canAccessCheckout={cartCount > 0} />
+      <Header
+        cartCount={cartCount}
+        onCartOpen={() => setCartOpen(true)}
+        canAccessCheckout={cartCount > 0}
+        showCollectionsSection={showFeaturedSection}
+      />
       <HeroSection notice={config.heroNotice} cartCount={cartCount} onCartOpen={() => setCartOpen(true)} />
 
       {notice ? (
@@ -343,11 +350,7 @@ export function StorefrontPage() {
                       <p className="mt-2 text-sm text-[var(--gold)]">{formatPrice(product.price)}</p>
                     </div>
                   </div>
-                )) : isAdmin ? (
-                  <div className="rounded-[1.5rem] border border-dashed border-[var(--line)] bg-[#101111] p-6 text-center text-sm text-[var(--text-secondary)] md:col-span-3">
-                    Add products to the catalog or mark items as featured from the admin panel to refine this section further.
-                  </div>
-                ) : null}
+                )) : null}
               </div>
             </div>
           </section>

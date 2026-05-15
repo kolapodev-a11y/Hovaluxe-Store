@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { isAdminRole, normalizeUserRole } from '../utils/auth';
 
 const AUTH_STORAGE_KEY = 'hovaluxe_auth_session';
 const AUTH_EVENT = 'hovaluxe-auth-changed';
@@ -50,18 +51,26 @@ export function AuthProvider({ children }) {
     };
   }, []);
 
+  const normalizedUser = session?.user
+    ? { ...session.user, role: normalizeUserRole(session.user.role) }
+    : null;
+
+  const normalizedSession = session
+    ? { ...session, user: normalizedUser }
+    : null;
+
   const value = useMemo(
     () => ({
-      session,
-      token: session?.token || '',
-      user: session?.user || null,
-      isAuthenticated: Boolean(session?.token),
-      isAdmin: session?.user?.role === 'admin',
+      session: normalizedSession,
+      token: normalizedSession?.token || '',
+      user: normalizedUser,
+      isAuthenticated: Boolean(normalizedSession?.token),
+      isAdmin: isAdminRole(normalizedUser?.role),
       setSession,
       login: (nextSession) => setSession(nextSession),
       logout: () => setSession(null),
     }),
-    [session],
+    [normalizedSession, normalizedUser],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

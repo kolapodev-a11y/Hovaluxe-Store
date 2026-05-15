@@ -3,7 +3,6 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import {
   ArrowRight,
   Cloud,
-  CreditCard,
   Droplets,
   Flame,
   Gem,
@@ -12,7 +11,6 @@ import {
   PackageCheck,
   Receipt,
   ShieldCheck,
-  Sparkles,
   Wind,
 } from 'lucide-react';
 import { brand, normalizeProduct } from '../data/store';
@@ -164,20 +162,25 @@ export function StorefrontPage() {
     };
   }, [isAuthenticated, token]);
 
-  useEffect(() => {
-    if (!cart.length && checkoutOpen) {
-      setCheckoutOpen(false);
-    }
-  }, [cart.length, checkoutOpen]);
+  const shouldResumeCheckout = Boolean(location.state?.openCheckout && cart.length && isAuthenticated);
 
   useEffect(() => {
-    if (!location.state?.openCheckout || !cart.length || !isAuthenticated) {
+    if (!shouldResumeCheckout) {
       return;
     }
 
-    setCheckoutOpen(true);
     navigate(location.pathname, { replace: true, state: null });
-  }, [cart.length, isAuthenticated, location.pathname, location.state, navigate]);
+  }, [location.pathname, navigate, shouldResumeCheckout]);
+
+  useEffect(() => {
+    const sectionId = location.state?.scrollTo;
+    if (!sectionId) {
+      return;
+    }
+
+    scrollToSection(sectionId);
+    navigate(location.pathname, { replace: true, state: null });
+  }, [location.pathname, location.state, navigate]);
 
   const filteredProducts = useMemo(() => {
     return products.filter((product) => {
@@ -319,7 +322,6 @@ export function StorefrontPage() {
       <Header
         cartCount={cartCount}
         onCartOpen={() => setCartOpen(true)}
-        canAccessCheckout={cartCount > 0}
         showTransactionSection={isAuthenticated}
       />
       <HeroSection notice={config.heroNotice} cartCount={cartCount} onCartOpen={() => setCartOpen(true)} />
@@ -423,81 +425,54 @@ export function StorefrontPage() {
         </section>
 
         {cartCount > 0 ? (
-          <section id="payments" className="mx-auto max-w-7xl px-4 py-16 md:px-6 lg:px-8">
-            <div className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
-              <div className="luxe-panel rounded-[2rem] p-6 lg:p-7">
-                <SectionTitle
-                  eyebrow="Payments"
-                  title="Checkout your way"
-                  description="Payment options are shown after products are added to the cart, and checkout is completed only by signed-in customers."
-                />
-                <div className="space-y-4">
-                  <PaymentRow
-                    icon={<MessageCircle size={18} />}
-                    title="WhatsApp order"
-                    body="Opens a structured order message with your customer details, selected items, and delivery address."
-                  />
-                  <PaymentRow
-                    icon={<CreditCard size={18} />}
-                    title="Flutterwave"
-                    body="Creates a secure checkout session for online payment and order confirmation."
-                  />
+          <section className="mx-auto max-w-7xl px-4 py-16 md:px-6 lg:px-8">
+            <div className="rounded-[2rem] border border-[var(--line)] bg-[#101111] p-6 shadow-[0_24px_70px_rgba(0,0,0,.38)] lg:p-7">
+              <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+                <div className="max-w-2xl">
+                  <p className="text-xs uppercase tracking-[0.24em] text-[var(--accent-green)]">Checkout</p>
+                  <h3 className="mt-2 font-display text-4xl text-[var(--text-primary)]">Ready to complete an order</h3>
+                  <p className="mt-3 text-sm leading-7 text-[var(--text-secondary)]">
+                    Checkout now happens in one continuous mobile-friendly flow with customer details, payment choice, and order summary on the same page.
+                  </p>
                 </div>
-
-                <div className="mt-6 rounded-[1.5rem] border border-white/8 bg-white/[0.03] p-5 text-sm text-[var(--text-secondary)]">
-                  <div className="flex items-start gap-3">
-                    <Sparkles size={18} className="mt-0.5 text-[var(--gold)]" />
-                    <p>
-                      Delivery fee is currently set to <span className="text-[var(--gold-soft)]">{formatPrice(config.deliveryFee)}</span>. Customers can review this before completing checkout.
-                    </p>
-                  </div>
-                </div>
+                <PackageCheck className="shrink-0 text-[var(--gold)]" size={24} />
               </div>
 
-              <div className="rounded-[2rem] border border-[var(--line)] bg-[#101111] p-6 shadow-[0_24px_70px_rgba(0,0,0,.38)] lg:p-7">
-                <div className="flex items-center justify-between gap-4">
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.24em] text-[var(--accent-green)]">Active checkout</p>
-                    <h3 className="mt-2 font-display text-4xl text-[var(--text-primary)]">Ready to complete an order</h3>
+              <div className="mt-6 grid gap-4 rounded-[1.5rem] border border-white/8 bg-white/[0.03] p-5 sm:grid-cols-3">
+                <SummaryTile label="Items" value={String(cartCount)} />
+                <SummaryTile label="Subtotal" value={formatPrice(cartSubtotal)} />
+                <SummaryTile label="Estimated total" value={formatPrice(checkoutEstimate)} />
+              </div>
+
+              <div className="mt-6 grid gap-3 lg:grid-cols-2">
+                {[
+                  'Use WhatsApp for manual confirmation or Flutterwave for online payment.',
+                  `Delivery fee is currently ${formatPrice(config.deliveryFee)} and is shown before you confirm the order.`,
+                  'Signed-in customers can review completed Flutterwave orders in their transaction history.',
+                  'The checkout form is optimized for smooth scrolling on mobile devices.',
+                ].map((line) => (
+                  <div key={line} className="rounded-[1.2rem] border border-white/8 bg-white/[0.03] px-4 py-3 text-sm text-[var(--text-secondary)]">
+                    {line}
                   </div>
-                  <PackageCheck className="text-[var(--gold)]" size={24} />
-                </div>
+                ))}
+              </div>
 
-                <div className="mt-6 grid gap-4 rounded-[1.5rem] border border-white/8 bg-white/[0.03] p-5 sm:grid-cols-3">
-                  <SummaryTile label="Items" value={String(cartCount)} />
-                  <SummaryTile label="Subtotal" value={formatPrice(cartSubtotal)} />
-                  <SummaryTile label="Estimated total" value={formatPrice(checkoutEstimate)} />
-                </div>
-
-                <div className="mt-6 space-y-3">
-                  {[
-                    'Customer details are collected inside a responsive mobile-friendly checkout flow.',
-                    'Your account name and email stay locked during checkout for consistency.',
-                    'Flutterwave orders appear in your account transaction history after payment is initiated.',
-                  ].map((line) => (
-                    <div key={line} className="rounded-[1.2rem] border border-white/8 bg-white/[0.03] px-4 py-3 text-sm text-[var(--text-secondary)]">
-                      {line}
-                    </div>
-                  ))}
-                </div>
-
-                <div className="mt-6 flex flex-wrap gap-3">
-                  <button
-                    type="button"
-                    onClick={openCheckoutFlow}
-                    className="inline-flex min-h-13 items-center justify-center gap-2 rounded-full bg-[linear-gradient(135deg,var(--gold-soft),var(--gold))] px-6 py-3 text-sm font-semibold text-[#1b140b] shadow-[0_10px_24px_rgba(216,192,122,0.18)] transition hover:-translate-y-0.5"
-                  >
-                    Open checkout
-                    <ArrowRight size={16} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setCartOpen(true)}
-                    className="inline-flex min-h-13 items-center justify-center gap-2 rounded-full border border-[var(--line)] bg-white/5 px-6 py-3 text-sm font-semibold text-[var(--text-primary)] transition hover:-translate-y-0.5 hover:border-[var(--gold)]/35"
-                  >
-                    Review cart
-                  </button>
-                </div>
+              <div className="mt-6 flex flex-wrap gap-3">
+                <button
+                  type="button"
+                  onClick={openCheckoutFlow}
+                  className="inline-flex min-h-13 items-center justify-center gap-2 rounded-full bg-[linear-gradient(135deg,var(--gold-soft),var(--gold))] px-6 py-3 text-sm font-semibold text-[#1b140b] shadow-[0_10px_24px_rgba(216,192,122,0.18)] transition hover:-translate-y-0.5"
+                >
+                  Open checkout
+                  <ArrowRight size={16} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCartOpen(true)}
+                  className="inline-flex min-h-13 items-center justify-center gap-2 rounded-full border border-[var(--line)] bg-white/5 px-6 py-3 text-sm font-semibold text-[var(--text-primary)] transition hover:-translate-y-0.5 hover:border-[var(--gold)]/35"
+                >
+                  Review cart
+                </button>
               </div>
             </div>
           </section>
@@ -557,9 +532,9 @@ export function StorefrontPage() {
         onRemove={removeFromCart}
         onCheckout={openCheckoutFlow}
       />
-      {checkoutOpen ? (
+      {checkoutOpen || shouldResumeCheckout ? (
         <CheckoutModal
-          open={checkoutOpen}
+          open={checkoutOpen || shouldResumeCheckout}
           cart={cart}
           deliveryFee={config.deliveryFee}
           onClose={() => setCheckoutOpen(false)}
@@ -641,20 +616,6 @@ function InfoPanel({ icon, title, text }) {
       </div>
       <h3 className="mt-4 font-display text-2xl text-[var(--text-primary)]">{title}</h3>
       <p className="mt-3 text-sm leading-7 text-[var(--text-secondary)]">{text}</p>
-    </div>
-  );
-}
-
-function PaymentRow({ icon, title, body }) {
-  return (
-    <div className="flex gap-4 rounded-[1.4rem] border border-[var(--line)] bg-[#111314] p-4 text-left">
-      <div className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--gold)]/10 text-[var(--gold)]">
-        {icon}
-      </div>
-      <div>
-        <h4 className="text-base font-medium text-[var(--text-primary)]">{title}</h4>
-        <p className="mt-2 text-sm leading-7 text-[var(--text-secondary)]">{body}</p>
-      </div>
     </div>
   );
 }

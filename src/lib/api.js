@@ -23,6 +23,7 @@ export const api = {
   // ---------- Auth ----------
   register: (body) => request('/auth/register', { method: 'POST', body: JSON.stringify(body) }),
   login: (body) => request('/auth/login', { method: 'POST', body: JSON.stringify(body) }),
+  getAuthProviders: () => request('/auth/providers', { method: 'GET' }),
   googleLogin: (body) => request('/auth/google', { method: 'POST', body: JSON.stringify(body) }),
   getMe: (token) => request('/auth/me', { method: 'GET', token }),
 

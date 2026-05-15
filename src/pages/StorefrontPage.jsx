@@ -121,8 +121,8 @@ export function StorefrontPage() {
   const [products, setProducts] = useState([]);
   const [cart, setCart] = useLocalStorage('hovaluxe_cart', []);
 
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [productsLoading, setProductsLoading] = useState(true);
+  const [catalogError, setCatalogError] = useState('');
   const [notice, setNotice] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [activeCategory, setActiveCategory] = useState('All');
@@ -134,23 +134,36 @@ export function StorefrontPage() {
     let active = true;
 
     async function loadStore() {
-      try {
-        const [configResponse, productsResponse] = await Promise.all([
-          api.getPublicConfig(),
-          api.getProducts(),
-        ]);
+      setProductsLoading(true);
+      setCatalogError('');
 
-        if (!active) return;
+      const configRequest = api
+        .getPublicConfig()
+        .then((configResponse) => {
+          if (!active) return;
+          setConfig({ ...fallbackConfig, ...(configResponse.data || {}) });
+        })
+        .catch(() => {
+          if (!active) return;
+          setConfig(fallbackConfig);
+        });
 
-        setConfig({ ...fallbackConfig, ...(configResponse.data || {}) });
-        setProducts((productsResponse.data || []).map((product) => normalizeProduct(product)));
-        setError('');
-      } catch (loadError) {
-        if (!active) return;
-        setError(loadError.message || 'Unable to load the storefront right now.');
-      } finally {
-        if (active) setLoading(false);
-      }
+      const productsRequest = api
+        .getProducts()
+        .then((productsResponse) => {
+          if (!active) return;
+          setProducts((productsResponse.data || []).map((product) => normalizeProduct(product)));
+          setCatalogError('');
+        })
+        .catch((loadError) => {
+          if (!active) return;
+          setCatalogError(loadError.message || 'Unable to load products right now.');
+        })
+        .finally(() => {
+          if (active) setProductsLoading(false);
+        });
+
+      await Promise.allSettled([configRequest, productsRequest]);
     }
 
     loadStore();
@@ -419,13 +432,13 @@ export function StorefrontPage() {
             />
           </div>
 
-          {loading ? (
+          {productsLoading ? (
             <div className="mt-8 rounded-[1.8rem] border border-[var(--line)] bg-white/[0.03] p-8 text-center text-sm text-[var(--text-secondary)]">
               Loading products...
             </div>
-          ) : error ? (
+          ) : catalogError ? (
             <div className="mt-8 rounded-[1.8rem] border border-rose-500/20 bg-rose-500/10 p-8 text-center text-sm text-rose-200">
-              {error}
+              {catalogError}
             </div>
           ) : filteredProducts.length ? (
             <div className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">

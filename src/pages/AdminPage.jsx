@@ -72,6 +72,19 @@ export function AdminPage() {
 
   const currentSection = sectionMeta[activeTab] || sectionMeta.dashboard;
 
+  const syncProductSummary = (productList) => {
+    const activeProducts = productList.filter((product) => product.isActive);
+    const lowStockProducts = activeProducts.filter(
+      (product) => product.status === 'low-stock' || Number(product.inventoryQuantity || 0) <= 5,
+    );
+
+    setSummary((prev) => ({
+      ...prev,
+      productsCount: activeProducts.length,
+      lowStockCount: lowStockProducts.length,
+    }));
+  };
+
   const loadDashboard = async () => {
     if (!token || !isAdmin) {
       setLoading(false);
@@ -86,8 +99,10 @@ export function AdminPage() {
         api.getOrders(token),
         api.getAdminConfig(token),
       ]);
+      const nextProducts = productsResponse.data || [];
       setSummary(summaryResponse.data || initialSummary);
-      setProducts(productsResponse.data || []);
+      setProducts(nextProducts);
+      syncProductSummary(nextProducts);
       setOrders(ordersResponse.data || []);
       setStoreConfig({ ...initialConfig, ...(configResponse.data || {}) });
       setError('');
@@ -107,16 +122,30 @@ export function AdminPage() {
   }, [token, isAdmin]);
 
   const saveProduct = async (product) => {
+    if (busy) return;
+
     try {
       setBusy(true);
-      if (editingProduct) {
-        await api.updateProduct(token, editingProduct.id, product);
-      } else {
-        await api.createProduct(token, product);
-      }
+      setError('');
+
+      const response = editingProduct
+        ? await api.updateProduct(token, editingProduct.id, product)
+        : await api.createProduct(token, product);
+
+      const savedProduct = response.data;
+
+      setProducts((currentProducts) => {
+        const existingIndex = currentProducts.findIndex((item) => item.id === savedProduct.id);
+        const nextProducts = existingIndex >= 0
+          ? currentProducts.map((item) => (item.id === savedProduct.id ? savedProduct : item))
+          : [savedProduct, ...currentProducts];
+
+        syncProductSummary(nextProducts);
+        return nextProducts;
+      });
+
       setModalOpen(false);
       setEditingProduct(null);
-      await loadDashboard();
     } catch (saveError) {
       setError(saveError.message || 'Unable to save product.');
     } finally {
@@ -126,12 +155,17 @@ export function AdminPage() {
 
   const deleteProduct = async (id) => {
     const shouldDelete = window.confirm('Delete this product from the catalog?');
-    if (!shouldDelete) return;
+    if (!shouldDelete || busy) return;
 
     try {
       setBusy(true);
+      setError('');
       await api.deleteProduct(token, id);
-      await loadDashboard();
+      setProducts((currentProducts) => {
+        const nextProducts = currentProducts.filter((product) => product.id !== id);
+        syncProductSummary(nextProducts);
+        return nextProducts;
+      });
     } catch (deleteError) {
       setError(deleteError.message || 'Unable to delete product.');
     } finally {
@@ -372,20 +406,8 @@ export function AdminPage() {
           {/* Products */}
           {!loading && activeTab === 'products' ? (
             <div className="mt-6 space-y-4">
-              {/* Add product CTA on mobile */}
               <div className="flex items-center justify-between">
                 <p className="text-sm text-[var(--text-secondary)]">{products.length} product{products.length !== 1 ? 's' : ''} in catalog</p>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEditingProduct(null);
-                    setModalOpen(true);
-                  }}
-                  className="inline-flex items-center gap-2 rounded-full bg-[var(--gold)] px-4 py-2 text-sm font-semibold text-[#111] lg:hidden"
-                >
-                  <PackagePlus size={14} />
-                  Add product
-                </button>
               </div>
 
               {products.length ? (
@@ -393,7 +415,7 @@ export function AdminPage() {
                   const gallery = getProductImages(product);
                   return (
                     <div key={product.id} className="grid gap-4 rounded-[1.5rem] border border-[var(--line)] bg-white/[0.03] p-4 lg:grid-cols-[100px_1fr_auto] lg:items-center">
-                      <img src={gallery[0]} alt={product.name} className="h-24 w-full rounded-[1rem] object-cover lg:h-[100px] lg:w-[100px]" />
+                      <img src={gallery[0]} alt={product.name} loading="lazy" decoding="async" className="h-24 w-full rounded-[1rem] object-cover lg:h-[100px] lg:w-[100px]" />
                       <div>
                         <div className="flex flex-wrap items-center gap-2">
                           <h3 className="font-display text-2xl text-[var(--text-primary)]">{product.name}</h3>
@@ -547,11 +569,13 @@ export function AdminPage() {
       <ProductFormModal
         open={modalOpen}
         onClose={() => {
+          if (busy) return;
           setModalOpen(false);
           setEditingProduct(null);
         }}
         onSave={saveProduct}
         product={editingProduct}
+        saving={busy}
       />
     </div>
   );

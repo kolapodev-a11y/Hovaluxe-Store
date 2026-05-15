@@ -48,6 +48,8 @@ export const api = {
     request(`/admin/orders?paymentMethod=${encodeURIComponent(paymentMethod)}`, { method: 'GET', token }),
   updateOrder: (token, id, body) =>
     request(`/admin/orders/${id}`, { method: 'PATCH', token, body: JSON.stringify(body) }),
+  clearOrders: (token, paymentMethod = 'all') =>
+    request(`/admin/orders?paymentMethod=${encodeURIComponent(paymentMethod)}`, { method: 'DELETE', token }),
   getAdminConfig: (token) => request('/admin/config', { method: 'GET', token }),
   updateAdminConfig: (token, body) =>
     request('/admin/config', { method: 'PATCH', token, body: JSON.stringify(body) }),

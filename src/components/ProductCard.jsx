@@ -67,6 +67,9 @@ export function ProductCard({ product, onAddToCart, compact = false }) {
                   <img
                     src={image}
                     alt={`${product.name} ${index + 1}`}
+                    loading={index === 0 ? 'eager' : 'lazy'}
+                    decoding="async"
+                    fetchPriority={index === 0 ? 'high' : 'low'}
                     className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
                   />
                 </div>

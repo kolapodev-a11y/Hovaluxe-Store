@@ -69,13 +69,12 @@ export function CheckoutModal({
             <div className="min-w-0">
               <p className="text-xs uppercase tracking-[0.24em] text-[var(--text-secondary)]">Checkout</p>
               <h3 className="mt-2 font-display text-3xl text-[var(--text-primary)] sm:text-4xl">Finish your order</h3>
-              <p className="mt-3 text-sm leading-6 break-words text-[var(--text-secondary)]">
-                You are checking out as
-                <span className="mt-1 block break-all text-[var(--gold-soft)]">
-                  {customerProfile?.email || 'a logged-in customer'}
-                </span>
-                Add your delivery details and choose how you want to complete the order.
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-[var(--text-secondary)]">
+                Review your account details below, add your delivery information, and choose how you want to complete the order.
               </p>
+              <div className="mt-3 inline-flex max-w-full items-center rounded-full border border-[var(--line)] bg-white/[0.03] px-4 py-2 text-sm text-[var(--gold-soft)]">
+                <span className="truncate">Checking out as {customerProfile?.email || 'a logged-in customer'}</span>
+              </div>
             </div>
             <button type="button" onClick={onClose} className="rounded-full border border-[var(--line)] bg-white/5 p-3 text-[var(--text-primary)]">
               <X size={18} />
@@ -85,9 +84,17 @@ export function CheckoutModal({
           <div className="grid min-h-0 flex-1 gap-0 lg:grid-cols-[minmax(0,1fr)_340px]">
             <form className="min-h-0 overflow-y-auto px-4 py-4 scrollbar-thin sm:px-6 sm:py-5" onSubmit={handleSubmit}>
               <div className="grid gap-4 md:grid-cols-2">
-                <Field label="Customer name" className="md:col-span-2">
+                <Field label="Customer name">
                   <input
                     value={customerProfile?.name || form.customerName}
+                    readOnly
+                    className="input-style cursor-not-allowed bg-white/[0.02] text-[var(--text-secondary)]"
+                  />
+                </Field>
+                <Field label="Email address">
+                  <input
+                    type="email"
+                    value={customerProfile?.email || form.customerEmail}
                     readOnly
                     className="input-style cursor-not-allowed bg-white/[0.02] text-[var(--text-secondary)]"
                   />
@@ -101,21 +108,13 @@ export function CheckoutModal({
                     placeholder="08031234567"
                   />
                 </Field>
-                <Field label="Email address">
-                  <input
-                    type="email"
-                    value={customerProfile?.email || form.customerEmail}
-                    readOnly
-                    className="input-style cursor-not-allowed bg-white/[0.02] text-[var(--text-secondary)]"
-                  />
-                </Field>
                 <Field label="Delivery address" className="md:col-span-2">
                   <textarea
                     value={form.shippingAddress}
                     onChange={(e) => updateField('shippingAddress', e.target.value)}
                     required
                     className="input-style min-h-28 resize-none placeholder:text-sm"
-                    placeholder="Where should we deliver the order?"
+                    placeholder="Enter the full delivery address"
                   />
                 </Field>
                 <Field label="Order notes" className="md:col-span-2">
@@ -145,10 +144,10 @@ export function CheckoutModal({
                           </span>
                           <div className="min-w-0">
                             <p className="font-medium">{method}</p>
-                            <p className="mt-1 text-xs leading-5 text-[var(--text-secondary)] break-words">
+                            <p className="mt-1 text-xs leading-5 text-[var(--text-secondary)]">
                               {method === 'WhatsApp'
-                                ? 'Send your order summary to the Hovaluxe team'
-                                : 'Continue to secure Flutterwave payment'}
+                                ? 'Send your order summary directly to the Hovaluxe team.'
+                                : 'Continue to a secure Flutterwave payment page.'}
                             </p>
                           </div>
                         </div>
@@ -177,7 +176,7 @@ export function CheckoutModal({
                   <div key={item.id} className="flex items-start justify-between gap-3 rounded-[1rem] border border-white/8 bg-black/10 px-3 py-3">
                     <div className="min-w-0">
                       <p className="text-[var(--text-primary)]">{item.name}</p>
-                      <p className="mt-1 break-words">{item.quantity} × {formatPrice(item.price)}</p>
+                      <p className="mt-1">{item.quantity} × {formatPrice(item.price)}</p>
                     </div>
                     <span className="shrink-0">{formatPrice(item.price * item.quantity)}</span>
                   </div>

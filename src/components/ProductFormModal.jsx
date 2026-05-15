@@ -13,7 +13,6 @@ const emptyProduct = {
   volume: '',
   sku: '',
   description: '',
-  featured: false,
   images: [],
   isActive: true,
 };
@@ -28,6 +27,7 @@ export function ProductFormModal({ open, onClose, onSave, product }) {
   useEffect(() => {
     if (product) {
       setForm({
+        ...emptyProduct,
         ...product,
         price: String(product.price ?? ''),
         inventoryQuantity: String(product.inventoryQuantity ?? 0),
@@ -87,6 +87,7 @@ export function ProductFormModal({ open, onClose, onSave, product }) {
 
     onSave({
       ...form,
+      featured: false,
       price: Number(form.price || 0),
       inventoryQuantity: Number(form.inventoryQuantity || 0),
       images: finalImages,
@@ -139,10 +140,6 @@ export function ProductFormModal({ open, onClose, onSave, product }) {
             </select>
           </Field>
           <label className="flex items-center gap-3 rounded-[1rem] border border-[var(--line)] bg-white/[0.03] px-4 py-3 text-sm text-[var(--text-primary)]">
-            <input type="checkbox" checked={form.featured} onChange={(e) => updateField('featured', e.target.checked)} />
-            Featured on storefront
-          </label>
-          <label className="flex items-center gap-3 rounded-[1rem] border border-[var(--line)] bg-white/[0.03] px-4 py-3 text-sm text-[var(--text-primary)] md:col-span-2">
             <input type="checkbox" checked={form.isActive} onChange={(e) => updateField('isActive', e.target.checked)} />
             Visible on storefront
           </label>
@@ -214,7 +211,7 @@ export function ProductFormModal({ open, onClose, onSave, product }) {
             </div>
           </div>
 
-          <div className="md:col-span-2 flex flex-wrap justify-end gap-3">
+          <div className="flex flex-wrap justify-end gap-3 md:col-span-2">
             <button type="button" onClick={onClose} className="rounded-full border border-[var(--line)] px-5 py-3 text-sm text-[var(--text-primary)]">Cancel</button>
             <button type="submit" className="rounded-full bg-[var(--gold)] px-5 py-3 text-sm font-semibold text-[#111]">Save product</button>
           </div>

@@ -9,7 +9,7 @@ export function Header({
   cartCount,
   onCartOpen,
   canAccessCheckout = false,
-  showCollectionsSection = false,
+  showTransactionSection = false,
 }) {
   const [open, setOpen] = useState(false);
   const { user, isAuthenticated, isAdmin, logout } = useAuth();
@@ -17,12 +17,10 @@ export function Header({
   const navItems = useMemo(
     () => [
       { label: 'Store', href: '/', type: 'route' },
-      ...(showCollectionsSection
-        ? [{ label: 'Collections', href: '#collections', type: 'anchor' }]
-        : []),
       ...(canAccessCheckout ? [{ label: 'Payments', href: '#payments', type: 'anchor' }] : []),
+      ...(showTransactionSection ? [{ label: 'Transactions', href: '#transactions', type: 'anchor' }] : []),
     ],
-    [canAccessCheckout, showCollectionsSection],
+    [canAccessCheckout, showTransactionSection],
   );
 
   const navLinkClass = ({ isActive }) =>
@@ -181,7 +179,7 @@ export function Header({
               ) : (
                 <div className="mt-4 space-y-4">
                   <p className="text-sm leading-7 text-[var(--text-secondary)]">
-                    Sign in with email or Google. The admin panel stays hidden until the admin account is authenticated.
+                    Sign in with email or Google to complete checkout and review your transaction history from the same account.
                   </p>
                   <div className="flex flex-wrap gap-3">
                     <Link

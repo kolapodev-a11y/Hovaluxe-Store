@@ -13,7 +13,7 @@ export const statusOptions = [
   { value: 'sold', label: 'Sold' },
 ];
 
-export const paymentMethods = ['Flutterwave'];
+export const paymentMethods = ['WhatsApp', 'Flutterwave'];
 
 const svgToDataUri = (svg) => `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 

@@ -399,6 +399,7 @@ export function AdminPage() {
                           <h3 className="font-display text-2xl text-[var(--text-primary)]">{product.name}</h3>
                           <Badge value={product.status} />
                           <span className="rounded-full border border-[var(--line)] px-2 py-0.5 text-xs text-[var(--text-secondary)]">{gallery.length} img{gallery.length > 1 ? 's' : ''}</span>
+                          {product.featured ? <span className="rounded-full border border-[var(--gold)]/30 bg-[var(--gold)]/10 px-2 py-0.5 text-xs text-[var(--gold-soft)]">Featured</span> : null}
                         </div>
                         <p className="mt-1 text-sm text-[var(--text-secondary)]">{product.category}{product.volume ? ` • ${product.volume}` : ''}{product.sku ? ` • SKU ${product.sku}` : ''}</p>
                         <p className="mt-1 line-clamp-2 text-sm leading-6 text-[var(--text-secondary)]">{product.description}</p>

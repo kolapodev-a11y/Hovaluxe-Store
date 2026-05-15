@@ -74,6 +74,38 @@ const resolveTwitterUrl = (value = '') => {
   return `https://twitter.com/${normalized.replace(/^@/, '')}`;
 };
 
+const buildWhatsAppOrderLink = ({ phoneNumber, customerName, customerPhone, customerEmail, shippingAddress, notes, cart, deliveryFee, total }) => {
+  const phone = normalizePhoneNumber(phoneNumber);
+  if (!phone) return '';
+
+  const itemsSummary = cart
+    .map((item, index) => `${index + 1}. ${item.name} x${item.quantity} — ${formatPrice(item.price * item.quantity)}`)
+    .join('\n');
+
+  const message = [
+    'Hello Hovaluxe, I would like to place an order.',
+    '',
+    'Customer details',
+    `Name: ${customerName}`,
+    `Phone: ${customerPhone}`,
+    customerEmail ? `Email: ${customerEmail}` : '',
+    `Address: ${shippingAddress}`,
+    notes ? `Notes: ${notes}` : '',
+    '',
+    'Order items',
+    itemsSummary,
+    '',
+    `Delivery fee: ${formatPrice(deliveryFee)}`,
+    `Total: ${formatPrice(total)}`,
+    '',
+    'Please confirm availability and share the payment instructions.',
+  ]
+    .filter(Boolean)
+    .join('\n');
+
+  return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+};
+
 const scrollToSection = (sectionId) => {
   if (typeof document === 'undefined') return;
   window.requestAnimationFrame(() => {
@@ -134,6 +166,7 @@ export function StorefrontPage() {
       return;
     }
 
+    setCheckoutOpen(true);
     navigate(location.pathname, { replace: true, state: null });
   }, [location.pathname, navigate, shouldResumeCheckout]);
 
@@ -217,18 +250,44 @@ export function StorefrontPage() {
       return;
     }
 
-    if (!isAuthenticated) {
-      setCartOpen(false);
-      navigate('/login', { state: { from: '/', reason: 'checkout' } });
-      return;
-    }
-
     setCheckoutOpen(true);
   };
 
-  const placeOrder = async ({ customerName, customerPhone, customerEmail, shippingAddress, notes, total }) => {
+  const placeOrder = async ({ customerName, customerPhone, customerEmail, shippingAddress, notes, total, paymentMethod }) => {
     const resolvedCustomerName = user?.name || customerName;
     const resolvedCustomerEmail = user?.email || customerEmail;
+
+    if (paymentMethod === 'WhatsApp') {
+      const whatsappCheckoutLink = buildWhatsAppOrderLink({
+        phoneNumber: config.whatsappNumber,
+        customerName: resolvedCustomerName,
+        customerPhone,
+        customerEmail: resolvedCustomerEmail,
+        shippingAddress,
+        notes,
+        cart,
+        deliveryFee: Number(config.deliveryFee || 0),
+        total,
+      });
+
+      if (!whatsappCheckoutLink) {
+        setNotice('WhatsApp checkout is not available yet because the business number is missing in store settings.');
+        return;
+      }
+
+      setCheckoutOpen(false);
+      setCartOpen(false);
+      setCart([]);
+      window.location.href = whatsappCheckoutLink;
+      return;
+    }
+
+    if (!isAuthenticated) {
+      setCheckoutOpen(false);
+      setCartOpen(false);
+      navigate('/login', { state: { from: '/', reason: 'checkout', openCheckout: true } });
+      return;
+    }
 
     if (!resolvedCustomerEmail) {
       setNotice('Email address is required for Flutterwave payment.');
@@ -322,10 +381,10 @@ export function StorefrontPage() {
                 {featuredProducts.map((product) => (
                   <div
                     key={product.id}
-                    className="w-[280px] shrink-0 sm:w-[300px] lg:w-[320px]"
+                    className="w-[240px] shrink-0 sm:w-[250px] lg:w-[260px]"
                     style={{ scrollSnapAlign: 'start' }}
                   >
-                    <ProductCard product={product} onAddToCart={addToCart} />
+                    <ProductCard product={product} onAddToCart={addToCart} compact />
                   </div>
                 ))}
               </div>
@@ -409,7 +468,7 @@ export function StorefrontPage() {
                   <p className="text-xs uppercase tracking-[0.24em] text-[var(--accent-green)]">Checkout</p>
                   <h3 className="mt-2 font-display text-4xl text-[var(--text-primary)]">Ready to complete an order</h3>
                   <p className="mt-3 text-sm leading-7 text-[var(--text-secondary)]">
-                    Checkout now happens in one continuous mobile-friendly flow with customer details and Flutterwave payment on the same page.
+                    Checkout now supports both direct WhatsApp handoff and Flutterwave payment in one continuous mobile-friendly flow.
                   </p>
                 </div>
                 <PackageCheck className="shrink-0 text-[var(--gold)]" size={24} />
@@ -423,9 +482,9 @@ export function StorefrontPage() {
 
               <div className="mt-6 grid gap-3 lg:grid-cols-2">
                 {[
-                  'All online payments processed securely through Flutterwave for consistent records.',
+                  'WhatsApp checkout sends the order directly to the store owner without saving it to admin transactions.',
+                  'Flutterwave remains available for customers who want instant online payment confirmation.',
                   `Delivery fee is currently ${formatPrice(config.deliveryFee)} and is shown before you confirm the order.`,
-                  'Signed-in customers can review completed Flutterwave orders in their transaction history.',
                   'The checkout form is optimized for smooth scrolling on mobile devices.',
                 ].map((line) => (
                   <div key={line} className="rounded-[1.2rem] border border-white/8 bg-white/[0.03] px-4 py-3 text-sm text-[var(--text-secondary)]">
@@ -473,6 +532,8 @@ export function StorefrontPage() {
           onPlaceOrder={placeOrder}
           submitting={submitting}
           customerProfile={user}
+          isAuthenticated={isAuthenticated}
+          whatsappNumber={config.whatsappNumber}
         />
       ) : null}
 

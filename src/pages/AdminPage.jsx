@@ -151,6 +151,25 @@ export function AdminPage() {
     }
   };
 
+  const clearAllTransactions = async () => {
+    const shouldClear = window.confirm(
+      'Clear all transaction records? This permanently removes all stored orders from the admin panel and customer transaction history.',
+    );
+    if (!shouldClear) return;
+
+    try {
+      setBusy(true);
+      const response = await api.clearOrders(token);
+      setError('');
+      await loadDashboard();
+      window.alert(response.message || 'All transactions were cleared successfully.');
+    } catch (clearError) {
+      setError(clearError.message || 'Unable to clear transactions.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const saveConfig = async (event) => {
     event.preventDefault();
     try {
@@ -260,6 +279,17 @@ export function AdminPage() {
                 >
                   <PackagePlus size={15} />
                   Add product
+                </button>
+              ) : null}
+              {activeTab === 'orders' ? (
+                <button
+                  type="button"
+                  onClick={clearAllTransactions}
+                  disabled={busy || !orders.length}
+                  className="inline-flex items-center gap-2 rounded-full border border-rose-500/30 px-5 py-2.5 text-sm font-semibold text-rose-200 transition hover:bg-rose-500/10 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <Trash2 size={15} />
+                  Clear transactions
                 </button>
               ) : null}
               <Link
@@ -405,7 +435,18 @@ export function AdminPage() {
           {/* Orders — Flutterwave only */}
           {!loading && activeTab === 'orders' ? (
             <div className="mt-6 space-y-4">
-              <p className="text-sm text-[var(--text-secondary)]">{orders.length} order{orders.length !== 1 ? 's' : ''} found</p>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-sm text-[var(--text-secondary)]">{orders.length} order{orders.length !== 1 ? 's' : ''} found</p>
+                <button
+                  type="button"
+                  onClick={clearAllTransactions}
+                  disabled={busy || !orders.length}
+                  className="inline-flex items-center gap-2 self-start rounded-full border border-rose-500/30 px-4 py-2 text-sm font-semibold text-rose-200 transition hover:bg-rose-500/10 disabled:cursor-not-allowed disabled:opacity-50 md:hidden"
+                >
+                  <Trash2 size={14} />
+                  Clear transactions
+                </button>
+              </div>
 
               {orders.length ? (
                 orders.map((order) => (

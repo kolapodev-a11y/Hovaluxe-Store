@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ArrowRight, LoaderCircle } from 'lucide-react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { GoogleAuthButton } from '../components/GoogleAuthButton';
@@ -11,6 +11,31 @@ export function RegisterPage() {
   const [form, setForm] = useState({ name: '', email: '', password: '' });
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [googleEnabled, setGoogleEnabled] = useState(false);
+  const [authProvidersLoaded, setAuthProvidersLoaded] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadAuthProviders() {
+      try {
+        const response = await api.getAuthProviders();
+        if (!active) return;
+        setGoogleEnabled(Boolean(response?.data?.google?.enabled));
+      } catch {
+        if (!active) return;
+        setGoogleEnabled(false);
+      } finally {
+        if (active) setAuthProvidersLoaded(true);
+      }
+    }
+
+    loadAuthProviders();
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const finishAuth = (payload) => {
     login(payload);
@@ -32,6 +57,11 @@ export function RegisterPage() {
   };
 
   const handleGoogleLogin = async (credential) => {
+    if (!googleEnabled) {
+      setError('Google sign-in is temporarily unavailable. Please create your account with email and password.');
+      return;
+    }
+
     try {
       setBusy(true);
       setError('');
@@ -104,13 +134,21 @@ export function RegisterPage() {
           </button>
         </form>
 
-        <div className="mt-6">
-          <div className="relative text-center text-xs uppercase tracking-[0.24em] text-[var(--text-muted)]">
-            <span className="relative z-10 bg-[#0c0d0d] px-3">or continue with</span>
-            <div className="absolute left-0 right-0 top-1/2 -z-0 h-px -translate-y-1/2 bg-[var(--line)]" />
-          </div>
-          <GoogleAuthButton onCredential={handleGoogleLogin} className="mt-4 flex justify-center" width={340} />
-        </div>
+        {authProvidersLoaded ? (
+          googleEnabled ? (
+            <div className="mt-6">
+              <div className="relative text-center text-xs uppercase tracking-[0.24em] text-[var(--text-muted)]">
+                <span className="relative z-10 bg-[#0c0d0d] px-3">or continue with</span>
+                <div className="absolute left-0 right-0 top-1/2 -z-0 h-px -translate-y-1/2 bg-[var(--line)]" />
+              </div>
+              <GoogleAuthButton onCredential={handleGoogleLogin} className="mt-4 flex justify-center" width={340} />
+            </div>
+          ) : (
+            <div className="mt-6 rounded-2xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+              Google sign-up is currently unavailable on the server. Create your account with email and password instead.
+            </div>
+          )
+        ) : null}
 
         <div className="mt-6 flex flex-wrap items-center justify-between gap-3 text-sm">
           <p className="text-[var(--text-secondary)]">

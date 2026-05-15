@@ -34,7 +34,7 @@ export function CartDrawer({ open, cart, onClose, onUpdateQuantity, onRemove, on
             </div>
             <h4 className="mt-5 font-display text-2xl text-[var(--text-primary)]">Your cart is empty</h4>
             <p className="mt-2 max-w-xs text-sm leading-7 text-[var(--text-secondary)]">
-              Add a few Hovaluxe products and then proceed with WhatsApp or Flutterwave checkout.
+              Add a few Hovaluxe products and then proceed with secure Flutterwave checkout.
             </p>
           </div>
         ) : (

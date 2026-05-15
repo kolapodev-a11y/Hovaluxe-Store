@@ -1,34 +1,23 @@
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { Gem, LogOut, Menu, Shield, ShoppingBag, User, X } from 'lucide-react';
+import { Gem, Heart, LogOut, Menu, Shield, ShoppingBag, User, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { brand } from '../data/store';
 import { formatRoleLabel } from '../utils/auth';
 import { useAuth } from '../context/AuthContext';
+import { useWishlist } from '../context/WishlistContext';
 
-function scrollToSection(sectionId) {
-  if (typeof document === 'undefined' || !sectionId) return false;
-  const target = document.getElementById(sectionId);
-  if (!target) return false;
-  window.requestAnimationFrame(() => {
-    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  });
-  return true;
-}
-
-export function Header({
-  cartCount,
-  onCartOpen,
-  showTransactionSection = false,
-}) {
+export function Header({ cartCount, onCartOpen, showTransactionSection = false }) {
   const [open, setOpen] = useState(false);
-  const { user, isAuthenticated, isAdmin, logout } = useAuth();
+  const { user, isAuthenticated, isAdmin, requestLogout } = useAuth();
+  const { count: wishlistCount } = useWishlist();
   const location = useLocation();
   const navigate = useNavigate();
 
   const navItems = useMemo(
     () => [
-      { label: 'Store', href: '/', type: 'route' },
-      ...(showTransactionSection ? [{ label: 'Transactions', sectionId: 'transactions', type: 'section' }] : []),
+      { label: 'Store', href: '/' },
+      { label: 'Wishlist', href: '/wishlist' },
+      ...(showTransactionSection ? [{ label: 'Transactions', href: '/transactions' }] : []),
     ],
     [showTransactionSection],
   );
@@ -42,14 +31,21 @@ export function Header({
 
   const closeMenu = () => setOpen(false);
 
-  const handleSectionNavigation = (sectionId) => {
+  const openCart = () => {
     closeMenu();
-
-    if (location.pathname === '/' && scrollToSection(sectionId)) {
+    if (typeof onCartOpen === 'function') {
+      onCartOpen();
       return;
     }
+    navigate('/');
+  };
 
-    navigate('/', { state: { scrollTo: sectionId } });
+  const handleLogout = () => {
+    const didLogout = requestLogout();
+    if (didLogout) {
+      closeMenu();
+      navigate('/', { replace: true });
+    }
   };
 
   return (
@@ -68,28 +64,30 @@ export function Header({
         </Link>
 
         <nav className="hidden flex-1 items-center justify-center gap-8 lg:flex">
-          {navItems.map((item) =>
-            item.type === 'route' ? (
-              <NavLink key={item.label} to={item.href} className={navLinkClass} end>
-                {item.label}
-              </NavLink>
-            ) : (
-              <button
-                key={item.label}
-                type="button"
-                onClick={() => handleSectionNavigation(item.sectionId)}
-                className="text-[var(--text-secondary)] transition hover:text-[var(--text-primary)]"
-              >
-                {item.label}
-              </button>
-            ),
-          )}
+          {navItems.map((item) => (
+            <NavLink key={item.label} to={item.href} className={navLinkClass} end={item.href === '/'}>
+              {item.label}
+            </NavLink>
+          ))}
         </nav>
 
         <div className="flex items-center gap-2 sm:gap-3">
+          <NavLink
+            to="/wishlist"
+            className={({ isActive }) =>
+              `inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm transition ${
+                isActive
+                  ? 'border-[var(--gold)]/35 bg-[var(--gold)]/10 text-[var(--text-primary)]'
+                  : 'border-[var(--line)] bg-white/5 text-[var(--text-primary)] hover:border-[var(--gold)]/40 hover:bg-white/10'
+              }`
+            }
+          >
+            <Heart size={16} />
+            Wishlist ({wishlistCount})
+          </NavLink>
           <button
             type="button"
-            onClick={onCartOpen}
+            onClick={openCart}
             className="inline-flex items-center gap-2 rounded-full border border-[var(--line)] bg-white/5 px-4 py-2 text-sm text-[var(--text-primary)] transition hover:border-[var(--gold)]/40 hover:bg-white/10"
           >
             <ShoppingBag size={16} />
@@ -112,34 +110,23 @@ export function Header({
             <div>
               <p className="text-xs uppercase tracking-[0.24em] text-[var(--accent-green)]">Menu</p>
               <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                {navItems.map((item) =>
-                  item.type === 'route' ? (
-                    <NavLink
-                      key={item.label}
-                      to={item.href}
-                      end
-                      onClick={closeMenu}
-                      className={({ isActive }) =>
-                        `rounded-[1.2rem] border px-4 py-3 text-sm transition ${
-                          isActive
-                            ? 'border-[var(--gold)]/35 bg-[var(--gold)]/10 text-[var(--text-primary)]'
-                            : 'border-[var(--line)] bg-white/[0.03] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-                        }`
-                      }
-                    >
-                      {item.label}
-                    </NavLink>
-                  ) : (
-                    <button
-                      key={item.label}
-                      type="button"
-                      onClick={() => handleSectionNavigation(item.sectionId)}
-                      className="rounded-[1.2rem] border border-[var(--line)] bg-white/[0.03] px-4 py-3 text-left text-sm text-[var(--text-secondary)] transition hover:text-[var(--text-primary)]"
-                    >
-                      {item.label}
-                    </button>
-                  ),
-                )}
+                {navItems.map((item) => (
+                  <NavLink
+                    key={item.label}
+                    to={item.href}
+                    end={item.href === '/'}
+                    onClick={closeMenu}
+                    className={({ isActive }) =>
+                      `rounded-[1.2rem] border px-4 py-3 text-sm transition ${
+                        isActive
+                          ? 'border-[var(--gold)]/35 bg-[var(--gold)]/10 text-[var(--text-primary)]'
+                          : 'border-[var(--line)] bg-white/[0.03] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                      }`
+                    }
+                  >
+                    {item.label}
+                  </NavLink>
+                ))}
 
                 {isAdmin ? (
                   <NavLink
@@ -190,10 +177,7 @@ export function Header({
                     ) : null}
                     <button
                       type="button"
-                      onClick={() => {
-                        logout();
-                        closeMenu();
-                      }}
+                      onClick={handleLogout}
                       className="inline-flex items-center gap-2 rounded-full border border-[var(--line)] px-5 py-3 text-sm text-[var(--text-primary)]"
                     >
                       <LogOut size={16} />
@@ -204,11 +188,12 @@ export function Header({
               ) : (
                 <div className="mt-4 space-y-4">
                   <p className="text-sm leading-7 text-[var(--text-secondary)]">
-                    Sign in with email or Google to complete checkout and review your transaction history from the same account.
+                    Sign in with email or Google to complete checkout, manage your wishlist, and review transaction history from the same account.
                   </p>
                   <div className="flex flex-wrap gap-3">
                     <Link
                       to="/login"
+                      state={{ from: location.pathname }}
                       onClick={closeMenu}
                       className="inline-flex items-center gap-2 rounded-full bg-[var(--gold)] px-5 py-3 text-sm font-semibold text-[#111]"
                     >
@@ -216,6 +201,7 @@ export function Header({
                     </Link>
                     <Link
                       to="/register"
+                      state={{ from: location.pathname }}
                       onClick={closeMenu}
                       className="inline-flex items-center gap-2 rounded-full border border-[var(--line)] px-5 py-3 text-sm text-[var(--text-primary)]"
                     >

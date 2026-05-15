@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react';
-import { ChevronLeft, ChevronRight, ShoppingBag, Star, ZoomIn } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Heart, ShoppingBag, Star, ZoomIn } from 'lucide-react';
 import { Badge } from './Badge';
 import { formatPrice } from '../utils/format';
 import { getProductImages } from '../data/store';
 import { ImageLightbox } from './ImageLightbox';
+import { useWishlist } from '../context/WishlistContext';
 
 const SWIPE_THRESHOLD = 40;
 
@@ -13,6 +14,9 @@ export function ProductCard({ product, onAddToCart }) {
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [touchStartX, setTouchStartX] = useState(null);
+  const { isWishlisted, toggleWishlist } = useWishlist();
+
+  const wishlisted = isWishlisted(product.id);
 
   const showPreviousImage = () => {
     setActiveImageIndex((current) => (current - 1 + images.length) % images.length);
@@ -73,6 +77,19 @@ export function ProductCard({ product, onAddToCart }) {
               <Badge value={product.status} />
               {product.featured ? <Badge value="featured">Featured</Badge> : null}
             </div>
+
+            <button
+              type="button"
+              onClick={() => toggleWishlist(product)}
+              className={`absolute right-4 top-4 inline-flex h-11 w-11 items-center justify-center rounded-full border transition ${
+                wishlisted
+                  ? 'border-rose-400/40 bg-rose-500/15 text-rose-200'
+                  : 'border-white/10 bg-black/45 text-white hover:bg-black/65'
+              }`}
+              aria-label={wishlisted ? `Remove ${product.name} from wishlist` : `Add ${product.name} to wishlist`}
+            >
+              <Heart size={18} fill={wishlisted ? 'currentColor' : 'none'} />
+            </button>
 
             {images.length > 1 ? (
               <>
@@ -147,15 +164,29 @@ export function ProductCard({ product, onAddToCart }) {
             </div>
           </div>
 
-          <button
-            type="button"
-            disabled={disabled}
-            onClick={() => onAddToCart(product)}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-[var(--gold)]/20 bg-[var(--gold)] px-4 py-3 text-sm font-semibold text-[#12110f] transition hover:shadow-[0_14px_35px_rgba(199,164,93,.28)] disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-white/10 disabled:text-[var(--text-secondary)] disabled:shadow-none"
-          >
-            <ShoppingBag size={16} />
-            {disabled ? 'Unavailable' : 'Add to bag'}
-          </button>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <button
+              type="button"
+              onClick={() => toggleWishlist(product)}
+              className={`inline-flex w-full items-center justify-center gap-2 rounded-full border px-4 py-3 text-sm font-semibold transition ${
+                wishlisted
+                  ? 'border-rose-500/30 bg-rose-500/10 text-rose-100 hover:bg-rose-500/15'
+                  : 'border-[var(--line)] bg-white/5 text-[var(--text-primary)] hover:border-[var(--gold)]/30'
+              }`}
+            >
+              <Heart size={16} fill={wishlisted ? 'currentColor' : 'none'} />
+              {wishlisted ? 'Saved' : 'Wishlist'}
+            </button>
+            <button
+              type="button"
+              disabled={disabled}
+              onClick={() => onAddToCart(product)}
+              className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-[var(--gold)]/20 bg-[var(--gold)] px-4 py-3 text-sm font-semibold text-[#12110f] transition hover:shadow-[0_14px_35px_rgba(199,164,93,.28)] disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-white/10 disabled:text-[var(--text-secondary)] disabled:shadow-none"
+            >
+              <ShoppingBag size={16} />
+              {disabled ? 'Unavailable' : 'Add to bag'}
+            </button>
+          </div>
         </div>
       </article>
 

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   ArrowRight,
   Cloud,
@@ -82,7 +83,9 @@ const scrollToSection = (sectionId) => {
 };
 
 export function StorefrontPage() {
-  const { token, isAdmin } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { token, user, isAdmin, isAuthenticated } = useAuth();
   const [config, setConfig] = useState(fallbackConfig);
   const [products, setProducts] = useState([]);
   const [cart, setCart] = useLocalStorage('hovaluxe_cart', []);
@@ -130,6 +133,15 @@ export function StorefrontPage() {
       setCheckoutOpen(false);
     }
   }, [cart.length, checkoutOpen]);
+
+  useEffect(() => {
+    if (!location.state?.openCheckout || !cart.length || !isAuthenticated) {
+      return;
+    }
+
+    setCheckoutOpen(true);
+    navigate(location.pathname, { replace: true, state: null });
+  }, [cart.length, isAuthenticated, location.pathname, location.state, navigate]);
 
   const filteredProducts = useMemo(() => {
     return products.filter((product) => {
@@ -205,6 +217,12 @@ export function StorefrontPage() {
       return;
     }
 
+    if (!isAuthenticated) {
+      setCartOpen(false);
+      navigate('/login', { state: { from: '/', reason: 'checkout' } });
+      return;
+    }
+
     setCheckoutOpen(true);
   };
 
@@ -223,7 +241,8 @@ export function StorefrontPage() {
         `Hello ${brand.name}, I want to place an order.\n\nName: ${customerName}\nPhone: ${customerPhone}\nEmail: ${customerEmail || 'Not provided'}\nAddress: ${shippingAddress}\nItems: ${itemsSummary}\nTotal: ${formatPrice(total)}\nNotes: ${notes || 'None'}\n\nPlease confirm availability and next steps.`,
       );
 
-      window.open(`https://wa.me/${config.whatsappNumber}?text=${orderMessage}`, '_blank');
+      const normalizedWhatsAppNumber = normalizePhoneNumber(config.whatsappNumber);
+      window.open(`https://wa.me/${normalizedWhatsAppNumber}?text=${orderMessage}`, '_blank');
       setCart([]);
       setCheckoutOpen(false);
       setCartOpen(false);
@@ -406,7 +425,7 @@ export function StorefrontPage() {
                 <SectionTitle
                   eyebrow="Payments"
                   title="Checkout your way"
-                  description="Payment options are shown only after products have been added to the cart."
+                  description="Payment options are shown after products are added to the cart, and checkout is completed only by signed-in customers."
                 />
                 <div className="space-y-4">
                   <PaymentRow
@@ -450,7 +469,7 @@ export function StorefrontPage() {
                   {[
                     'Customer details are collected inside a responsive mobile-friendly checkout flow.',
                     'WhatsApp and Flutterwave stay available in the same order experience.',
-                    'Payment only appears after products are added to the cart.',
+                    'Customers can browse products without signing in, but checkout opens only after login.',
                   ].map((line) => (
                     <div key={line} className="rounded-[1.2rem] border border-white/8 bg-white/[0.03] px-4 py-3 text-sm text-[var(--text-secondary)]">
                       {line}
@@ -489,14 +508,17 @@ export function StorefrontPage() {
         onRemove={removeFromCart}
         onCheckout={openCheckoutFlow}
       />
-      <CheckoutModal
-        open={checkoutOpen}
-        cart={cart}
-        deliveryFee={config.deliveryFee}
-        onClose={() => setCheckoutOpen(false)}
-        onPlaceOrder={placeOrder}
-        submitting={submitting}
-      />
+      {checkoutOpen ? (
+        <CheckoutModal
+          open={checkoutOpen}
+          cart={cart}
+          deliveryFee={config.deliveryFee}
+          onClose={() => setCheckoutOpen(false)}
+          onPlaceOrder={placeOrder}
+          submitting={submitting}
+          customerProfile={user}
+        />
+      ) : null}
 
       <footer className="border-t border-[var(--line)] bg-[#090909]">
         <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 md:px-6 lg:grid-cols-[1.1fr_0.9fr_0.9fr] lg:px-8">

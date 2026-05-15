@@ -64,7 +64,6 @@ const categoryCards = [
 ];
 
 const catalogSectionId = 'catalog';
-const transactionsSectionId = 'transactions';
 
 const normalizePhoneNumber = (value = '') => String(value || '').replace(/[^\d]/g, '');
 
@@ -88,13 +87,10 @@ export function StorefrontPage() {
   const { token, user, isAuthenticated } = useAuth();
   const [config, setConfig] = useState(fallbackConfig);
   const [products, setProducts] = useState([]);
-  const [myOrders, setMyOrders] = useState([]);
   const [cart, setCart] = useLocalStorage('hovaluxe_cart', []);
 
   const [loading, setLoading] = useState(true);
-  const [historyLoading, setHistoryLoading] = useState(false);
   const [error, setError] = useState('');
-  const [historyError, setHistoryError] = useState('');
   const [notice, setNotice] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [activeCategory, setActiveCategory] = useState('All');
@@ -131,37 +127,6 @@ export function StorefrontPage() {
     };
   }, []);
 
-  useEffect(() => {
-    let active = true;
-
-    async function loadHistory() {
-      if (!isAuthenticated || !token) {
-        setMyOrders([]);
-        setHistoryError('');
-        setHistoryLoading(false);
-        return;
-      }
-
-      try {
-        setHistoryLoading(true);
-        const response = await api.getMyOrders(token);
-        if (!active) return;
-        setMyOrders(response.data || []);
-        setHistoryError('');
-      } catch (loadError) {
-        if (!active) return;
-        setHistoryError(loadError.message || 'Unable to load your transaction history right now.');
-      } finally {
-        if (active) setHistoryLoading(false);
-      }
-    }
-
-    loadHistory();
-    return () => {
-      active = false;
-    };
-  }, [isAuthenticated, token]);
-
   const shouldResumeCheckout = Boolean(location.state?.openCheckout && cart.length && isAuthenticated);
 
   useEffect(() => {
@@ -191,6 +156,8 @@ export function StorefrontPage() {
       return categoryMatch && searchMatch;
     });
   }, [products, activeCategory, search]);
+
+  const featuredProducts = useMemo(() => products.filter((p) => p.featured), [products]);
 
   const whatsappLink = useMemo(() => {
     const phone = normalizePhoneNumber(config.whatsappNumber);
@@ -259,31 +226,9 @@ export function StorefrontPage() {
     setCheckoutOpen(true);
   };
 
-  const placeOrder = async ({ customerName, customerPhone, customerEmail, shippingAddress, notes, paymentMethod, total }) => {
+  const placeOrder = async ({ customerName, customerPhone, customerEmail, shippingAddress, notes, total }) => {
     const resolvedCustomerName = user?.name || customerName;
     const resolvedCustomerEmail = user?.email || customerEmail;
-    const itemsSummary = cart
-      .map((item) => `${item.name} × ${item.quantity}`)
-      .join(', ');
-
-    if (paymentMethod === 'WhatsApp') {
-      if (!config.whatsappNumber) {
-        setNotice('WhatsApp ordering is not configured yet. Please contact the store directly.');
-        return;
-      }
-
-      const orderMessage = encodeURIComponent(
-        `Hello ${brand.name}, I want to place an order.\n\nName: ${resolvedCustomerName}\nPhone: ${customerPhone}\nEmail: ${resolvedCustomerEmail || 'Not provided'}\nAddress: ${shippingAddress}\nItems: ${itemsSummary}\nTotal: ${formatPrice(total)}\nNotes: ${notes || 'None'}\n\nPlease confirm availability and next steps.`,
-      );
-
-      const normalizedWhatsAppNumber = normalizePhoneNumber(config.whatsappNumber);
-      window.open(`https://wa.me/${normalizedWhatsAppNumber}?text=${orderMessage}`, '_blank');
-      setCart([]);
-      setCheckoutOpen(false);
-      setCartOpen(false);
-      setNotice('Your order details were sent to WhatsApp. The Hovaluxe team will confirm the order manually.');
-      return;
-    }
 
     if (!resolvedCustomerEmail) {
       setNotice('Email address is required for Flutterwave payment.');
@@ -335,6 +280,7 @@ export function StorefrontPage() {
       ) : null}
 
       <main>
+        {/* CATEGORIES */}
         <section className="mx-auto max-w-7xl px-4 py-16 md:px-6 lg:px-8">
           <SectionTitle
             eyebrow="Categories"
@@ -358,11 +304,42 @@ export function StorefrontPage() {
           </div>
         </section>
 
+        {/* FEATURED COLLECTION - horizontal scrollable */}
+        {featuredProducts.length > 0 ? (
+          <section id="collections" className="mx-auto max-w-7xl px-4 py-10 md:px-6 lg:px-8">
+            <SectionTitle
+              eyebrow="Featured"
+              title="Featured collection"
+              description="Handpicked scents from the Hovaluxe collection, curated for discerning tastes."
+              align="left"
+            />
+
+            <div className="relative">
+              <div
+                className="scrollbar-thin flex gap-5 overflow-x-auto pb-4"
+                style={{ scrollSnapType: 'x mandatory' }}
+              >
+                {featuredProducts.map((product) => (
+                  <div
+                    key={product.id}
+                    className="w-[280px] shrink-0 sm:w-[300px] lg:w-[320px]"
+                    style={{ scrollSnapAlign: 'start' }}
+                  >
+                    <ProductCard product={product} onAddToCart={addToCart} />
+                  </div>
+                ))}
+              </div>
+              <p className="mt-3 text-xs text-[var(--text-muted)]">← Scroll left or right to browse the featured collection →</p>
+            </div>
+          </section>
+        ) : null}
+
+        {/* SHOP - full catalog */}
         <section id={catalogSectionId} className="mx-auto max-w-7xl px-4 py-14 md:px-6 lg:px-8">
           <div className="text-center">
             <SectionTitle
               eyebrow="Shop"
-              title="Browse the full catalog"
+              title="Shop the full catalog"
               description="Search products and filter by category."
               align="center"
             />
@@ -413,14 +390,14 @@ export function StorefrontPage() {
 
         <section className="mx-auto grid max-w-7xl gap-6 px-4 py-4 md:px-6 lg:grid-cols-2 lg:px-8">
           <InfoPanel
-            icon={<MessageCircle size={18} />}
-            title="WhatsApp assistance"
-            text="Send a ready-made order summary for stock confirmation, delivery follow-up, and direct support."
-          />
-          <InfoPanel
             icon={<ShieldCheck size={18} />}
             title="Trusted fulfilment"
             text="Orders are reviewed with clear delivery details, payment tracking, and store-side management."
+          />
+          <InfoPanel
+            icon={<MessageCircle size={18} />}
+            title="WhatsApp assistance"
+            text="Reach the Hovaluxe team directly for product questions, stock availability, or delivery updates."
           />
         </section>
 
@@ -432,7 +409,7 @@ export function StorefrontPage() {
                   <p className="text-xs uppercase tracking-[0.24em] text-[var(--accent-green)]">Checkout</p>
                   <h3 className="mt-2 font-display text-4xl text-[var(--text-primary)]">Ready to complete an order</h3>
                   <p className="mt-3 text-sm leading-7 text-[var(--text-secondary)]">
-                    Checkout now happens in one continuous mobile-friendly flow with customer details, payment choice, and order summary on the same page.
+                    Checkout now happens in one continuous mobile-friendly flow with customer details and Flutterwave payment on the same page.
                   </p>
                 </div>
                 <PackageCheck className="shrink-0 text-[var(--gold)]" size={24} />
@@ -446,7 +423,7 @@ export function StorefrontPage() {
 
               <div className="mt-6 grid gap-3 lg:grid-cols-2">
                 {[
-                  'Use WhatsApp for manual confirmation or Flutterwave for online payment.',
+                  'All online payments processed securely through Flutterwave for consistent records.',
                   `Delivery fee is currently ${formatPrice(config.deliveryFee)} and is shown before you confirm the order.`,
                   'Signed-in customers can review completed Flutterwave orders in their transaction history.',
                   'The checkout form is optimized for smooth scrolling on mobile devices.',
@@ -474,51 +451,6 @@ export function StorefrontPage() {
                   Review cart
                 </button>
               </div>
-            </div>
-          </section>
-        ) : null}
-
-        {isAuthenticated ? (
-          <section id={transactionsSectionId} className="mx-auto max-w-7xl px-4 py-16 md:px-6 lg:px-8">
-            <div className="rounded-[2rem] border border-[var(--line)] bg-[#0f1010] p-6 shadow-[0_24px_70px_rgba(0,0,0,.36)] lg:p-8">
-              <div className="flex flex-col gap-4 border-b border-[var(--line)] pb-5 md:flex-row md:items-start md:justify-between">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.24em] text-[var(--accent-green)]">Account</p>
-                  <h3 className="mt-2 font-display text-4xl text-[var(--text-primary)]">Your transaction history</h3>
-                  <p className="mt-2 max-w-2xl text-sm leading-7 text-[var(--text-secondary)]">
-                    Review your Flutterwave payment activity, order references, and fulfilment updates from your signed-in account.
-                  </p>
-                </div>
-                <div className="rounded-[1.2rem] border border-[var(--line)] bg-white/[0.03] px-4 py-3 text-sm text-[var(--text-secondary)]">
-                  Signed in as <span className="text-[var(--gold-soft)]">{user?.email}</span>
-                </div>
-              </div>
-
-              {historyLoading ? (
-                <div className="mt-6 rounded-[1.4rem] border border-[var(--line)] bg-white/[0.03] p-6 text-sm text-[var(--text-secondary)]">
-                  Loading your transactions...
-                </div>
-              ) : historyError ? (
-                <div className="mt-6 rounded-[1.4rem] border border-rose-500/20 bg-rose-500/10 p-6 text-sm text-rose-200">
-                  {historyError}
-                </div>
-              ) : myOrders.length ? (
-                <div className="mt-6 grid gap-4 lg:grid-cols-2">
-                  {myOrders.map((order) => (
-                    <TransactionCard key={order.id} order={order} />
-                  ))}
-                </div>
-              ) : (
-                <div className="mt-6 rounded-[1.4rem] border border-dashed border-[var(--line)] bg-white/[0.03] p-8 text-center">
-                  <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[var(--gold)]/10 text-[var(--gold)]">
-                    <Receipt size={22} />
-                  </div>
-                  <h4 className="mt-4 font-display text-3xl text-[var(--text-primary)]">No transactions yet</h4>
-                  <p className="mt-3 text-sm leading-7 text-[var(--text-secondary)]">
-                    Your Flutterwave payment history will appear here once you complete an order from this account.
-                  </p>
-                </div>
-              )}
             </div>
           </section>
         ) : null}
@@ -626,56 +558,6 @@ function SummaryTile({ label, value }) {
       <p className="text-xs uppercase tracking-[0.22em] text-[var(--text-secondary)]">{label}</p>
       <p className="mt-2 font-display text-2xl text-[var(--gold-soft)]">{value}</p>
     </div>
-  );
-}
-
-function TransactionCard({ order }) {
-  return (
-    <article className="rounded-[1.5rem] border border-[var(--line)] bg-white/[0.03] p-5">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <p className="text-xs uppercase tracking-[0.24em] text-[var(--accent-green)]">{order.orderRef}</p>
-          <h4 className="mt-2 font-display text-3xl text-[var(--text-primary)]">{formatPrice(order.totalAmount)}</h4>
-          <p className="mt-1 text-sm text-[var(--text-secondary)]">Created {formatDateTime(order.createdAt)}</p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <StatusPill label={titleCase(order.paymentStatus)} tone={order.paymentStatus === 'paid' ? 'success' : 'neutral'} />
-          <StatusPill label={titleCase(order.fulfilmentStatus)} tone="neutral" />
-        </div>
-      </div>
-
-      <div className="mt-4 grid gap-3 sm:grid-cols-3">
-        <MetaBlock label="Payment method" value="Flutterwave" />
-        <MetaBlock label="Items" value={String(order.items?.length || 0)} />
-        <MetaBlock label="Paid at" value={formatDateTime(order.paidAt)} />
-      </div>
-
-      <div className="mt-4 rounded-[1.2rem] border border-[var(--line)] bg-[#111314] p-4">
-        <p className="text-xs uppercase tracking-[0.18em] text-[var(--text-secondary)]">Delivery address</p>
-        <p className="mt-2 text-sm leading-6 text-[var(--text-primary)]">{order.shippingAddress}</p>
-      </div>
-    </article>
-  );
-}
-
-function MetaBlock({ label, value }) {
-  return (
-    <div className="rounded-[1.1rem] border border-[var(--line)] bg-[#111314] px-4 py-3">
-      <p className="text-xs uppercase tracking-[0.18em] text-[var(--text-secondary)]">{label}</p>
-      <p className="mt-2 text-sm font-medium text-[var(--text-primary)]">{value}</p>
-    </div>
-  );
-}
-
-function StatusPill({ label, tone = 'neutral' }) {
-  const toneClass = tone === 'success'
-    ? 'border-emerald-500/25 bg-emerald-500/10 text-emerald-200'
-    : 'border-[var(--line)] bg-white/[0.04] text-[var(--text-primary)]';
-
-  return (
-    <span className={`rounded-full border px-3 py-1 text-xs uppercase tracking-[0.18em] ${toneClass}`}>
-      {label}
-    </span>
   );
 }
 

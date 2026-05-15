@@ -3,7 +3,6 @@ import {
   BarChart3,
   Boxes,
   LoaderCircle,
-  LogOut,
   PackagePlus,
   Pencil,
   Settings2,
@@ -58,7 +57,7 @@ const sectionMeta = {
 };
 
 export function AdminPage() {
-  const { session, token, user, isAuthenticated, isAdmin, logout } = useAuth();
+  const { session, token, user, isAuthenticated, isAdmin, logout, requestLogout } = useAuth();
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -186,7 +185,7 @@ export function AdminPage() {
             <Link to="/" className="rounded-full border border-[var(--line)] px-5 py-3 text-sm text-[var(--text-primary)]">
               Back to storefront
             </Link>
-            <button type="button" onClick={logout} className="rounded-full bg-[var(--gold)] px-5 py-3 text-sm font-semibold text-[#111]">
+            <button type="button" onClick={() => requestLogout()} className="rounded-full bg-[var(--gold)] px-5 py-3 text-sm font-semibold text-[#111]">
               Sign out
             </button>
           </div>
@@ -228,14 +227,13 @@ export function AdminPage() {
                 <p className="font-medium text-[var(--text-primary)]">{user?.name || brand.name}</p>
                 <p className="mt-1 break-all">{user?.email}</p>
               </div>
-              <button
-                type="button"
-                onClick={logout}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-rose-500/25 bg-rose-500/10 px-4 py-2.5 text-sm text-rose-200 transition hover:border-rose-500/40 hover:bg-rose-500/20"
+              <Link
+                to="/"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-[var(--line)] bg-white/[0.03] px-4 py-2.5 text-sm text-[var(--text-primary)] transition hover:border-[var(--gold)]/35"
               >
-                <LogOut size={14} />
-                Logout
-              </button>
+                <Store size={14} />
+                Back to Store
+              </Link>
             </div>
           </div>
         </aside>
@@ -264,14 +262,13 @@ export function AdminPage() {
                   Add product
                 </button>
               ) : null}
-              <button
-                type="button"
-                onClick={logout}
-                className="inline-flex items-center gap-2 rounded-full border border-rose-500/25 bg-rose-500/10 px-5 py-2.5 text-sm text-rose-200 lg:hidden"
+              <Link
+                to="/"
+                className="inline-flex items-center gap-2 rounded-full border border-[var(--line)] bg-white/[0.03] px-5 py-2.5 text-sm text-[var(--text-primary)] lg:hidden"
               >
-                <LogOut size={14} />
-                Logout
-              </button>
+                <Store size={14} />
+                Back to Store
+              </Link>
             </div>
           </div>
 

@@ -49,15 +49,16 @@ export function Header({ cartCount, onCartOpen, showTransactionSection = false }
   };
 
   return (
-    <header className="sticky top-0 z-40 border-b border-[var(--line)] bg-[rgba(9,10,11,0.86)] backdrop-blur-xl">
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 md:px-6 lg:px-8">
-        <Link to="/" className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-[var(--gold)]/25 bg-[linear-gradient(135deg,#181613,#0c0c0d)] text-[var(--gold)] shadow-[0_0_30px_rgba(199,164,93,.16)]">
-            <Gem size={20} />
+    <header className="sticky top-0 z-40 overflow-x-clip border-b border-[var(--line)] bg-[rgba(9,10,11,0.9)] backdrop-blur-xl">
+      <div className="mx-auto flex max-w-7xl min-w-0 items-center justify-between gap-2 px-3 py-3 sm:gap-3 sm:px-4 md:px-6 lg:px-8">
+        <Link to="/" className="flex min-w-0 flex-1 items-center gap-2.5 sm:gap-3 lg:flex-none">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[1.15rem] border border-[var(--gold)]/25 bg-[linear-gradient(135deg,#181613,#0c0c0d)] text-[var(--gold)] shadow-[0_0_30px_rgba(199,164,93,.16)] sm:h-11 sm:w-11">
+            <Gem size={18} className="sm:hidden" />
+            <Gem size={20} className="hidden sm:block" />
           </div>
-          <div>
-            <p className="font-display text-2xl leading-none text-[var(--text-primary)]">{brand.name}</p>
-            <p className="mt-1 text-[10px] uppercase tracking-[0.38em] text-[var(--text-secondary)]">
+          <div className="min-w-0">
+            <p className="truncate font-display text-[1.45rem] leading-none text-[var(--text-primary)] sm:text-2xl">{brand.name}</p>
+            <p className="mt-1 truncate text-[9px] uppercase tracking-[0.28em] text-[var(--text-secondary)] sm:text-[10px] sm:tracking-[0.34em]">
               Luxury fragrance
             </p>
           </div>
@@ -71,32 +72,42 @@ export function Header({ cartCount, onCartOpen, showTransactionSection = false }
           ))}
         </nav>
 
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
           <NavLink
             to="/wishlist"
             className={({ isActive }) =>
-              `inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm transition ${
+              `inline-flex h-10 items-center gap-1.5 rounded-full border px-2.5 text-xs font-medium whitespace-nowrap transition sm:h-11 sm:gap-2 sm:px-4 sm:text-sm ${
                 isActive
                   ? 'border-[var(--gold)]/35 bg-[var(--gold)]/10 text-[var(--text-primary)]'
                   : 'border-[var(--line)] bg-white/5 text-[var(--text-primary)] hover:border-[var(--gold)]/40 hover:bg-white/10'
               }`
             }
           >
-            <Heart size={16} />
-            Wishlist ({wishlistCount})
+            <Heart size={15} className="shrink-0 sm:hidden" />
+            <Heart size={16} className="hidden shrink-0 sm:block" />
+            <span className="sm:hidden">{wishlistCount}</span>
+            <>
+              <span className="hidden sm:inline">Wishlist</span>
+              <span>({wishlistCount})</span>
+            </>
           </NavLink>
           <button
             type="button"
             onClick={openCart}
-            className="inline-flex items-center gap-2 rounded-full border border-[var(--line)] bg-white/5 px-4 py-2 text-sm text-[var(--text-primary)] transition hover:border-[var(--gold)]/40 hover:bg-white/10"
+            className="inline-flex h-10 items-center gap-1.5 rounded-full border border-[var(--line)] bg-white/5 px-2.5 text-xs font-medium text-[var(--text-primary)] whitespace-nowrap transition hover:border-[var(--gold)]/40 hover:bg-white/10 sm:h-11 sm:gap-2 sm:px-4 sm:text-sm"
           >
-            <ShoppingBag size={16} />
-            Cart ({cartCount})
+            <ShoppingBag size={15} className="shrink-0 sm:hidden" />
+            <ShoppingBag size={16} className="hidden shrink-0 sm:block" />
+            <span className="sm:hidden">{cartCount}</span>
+            <>
+              <span className="hidden sm:inline">Cart</span>
+              <span>({cartCount})</span>
+            </>
           </button>
           <button
             type="button"
             onClick={() => setOpen((prev) => !prev)}
-            className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[var(--line)] bg-white/5 text-[var(--text-primary)] transition hover:border-[var(--gold)]/40 hover:bg-white/10"
+            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[var(--line)] bg-white/5 text-[var(--text-primary)] transition hover:border-[var(--gold)]/40 hover:bg-white/10 sm:h-11 sm:w-11"
             aria-label="Toggle navigation menu"
           >
             {open ? <X size={18} /> : <Menu size={18} />}
@@ -188,7 +199,7 @@ export function Header({ cartCount, onCartOpen, showTransactionSection = false }
               ) : (
                 <div className="mt-4 space-y-4">
                   <p className="text-sm leading-7 text-[var(--text-secondary)]">
-                    Sign in with email or Google to complete checkout, manage your wishlist, and review transaction history from the same account.
+                    Sign in with email or Google to complete Flutterwave checkout, manage your wishlist, and review transaction history from the same account.
                   </p>
                   <div className="flex flex-wrap gap-3">
                     <Link

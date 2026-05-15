@@ -14,6 +14,7 @@ const emptyProduct = {
   sku: '',
   description: '',
   images: [],
+  featured: false,
   isActive: true,
 };
 
@@ -32,6 +33,7 @@ export function ProductFormModal({ open, onClose, onSave, product }) {
         price: String(product.price ?? ''),
         inventoryQuantity: String(product.inventoryQuantity ?? 0),
         images: getProductImages(product),
+        featured: Boolean(product.featured),
       });
     } else {
       setForm(emptyProduct);
@@ -87,7 +89,7 @@ export function ProductFormModal({ open, onClose, onSave, product }) {
 
     onSave({
       ...form,
-      featured: false,
+      featured: Boolean(form.featured),
       price: Number(form.price || 0),
       inventoryQuantity: Number(form.inventoryQuantity || 0),
       images: finalImages,
@@ -142,6 +144,11 @@ export function ProductFormModal({ open, onClose, onSave, product }) {
           <label className="flex items-center gap-3 rounded-[1rem] border border-[var(--line)] bg-white/[0.03] px-4 py-3 text-sm text-[var(--text-primary)]">
             <input type="checkbox" checked={form.isActive} onChange={(e) => updateField('isActive', e.target.checked)} />
             Visible on storefront
+          </label>
+
+          <label className="flex items-center gap-3 rounded-[1rem] border border-[var(--line)] bg-white/[0.03] px-4 py-3 text-sm text-[var(--text-primary)] md:col-span-2">
+            <input type="checkbox" checked={form.featured} onChange={(e) => updateField('featured', e.target.checked)} />
+            Show in featured collection
           </label>
 
           <Field label="Description" className="md:col-span-2">

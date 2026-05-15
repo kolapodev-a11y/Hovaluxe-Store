@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
-import { LoaderCircle, Wallet, X } from 'lucide-react';
+import { LoaderCircle, MessageCircle, ShieldCheck, Wallet, X } from 'lucide-react';
 import { formatPrice } from '../utils/format';
+import { paymentMethods } from '../data/store';
 
 const makeInitialForm = (customerProfile = {}) => ({
   customerName: customerProfile?.name || '',
@@ -8,7 +9,7 @@ const makeInitialForm = (customerProfile = {}) => ({
   customerEmail: customerProfile?.email || '',
   shippingAddress: '',
   notes: '',
-  paymentMethod: 'Flutterwave',
+  paymentMethod: 'WhatsApp',
 });
 
 export function CheckoutModal({
@@ -19,11 +20,23 @@ export function CheckoutModal({
   onPlaceOrder,
   submitting,
   customerProfile,
+  isAuthenticated = false,
+  whatsappNumber = '',
 }) {
   const [form, setForm] = useState(() => makeInitialForm(customerProfile));
 
   useEffect(() => {
     if (!open) return undefined;
+
+    setForm((current) => ({
+      ...makeInitialForm(customerProfile),
+      customerPhone: current.customerPhone,
+      shippingAddress: current.shippingAddress,
+      notes: current.notes,
+      paymentMethod: current.paymentMethod || 'WhatsApp',
+      customerName: customerProfile?.name || current.customerName,
+      customerEmail: customerProfile?.email || current.customerEmail,
+    }));
 
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
@@ -31,7 +44,7 @@ export function CheckoutModal({
     return () => {
       document.body.style.overflow = previousOverflow;
     };
-  }, [open]);
+  }, [open, customerProfile]);
 
   const subtotal = useMemo(() => cart.reduce((sum, item) => sum + item.price * item.quantity, 0), [cart]);
   const total = subtotal + (cart.length ? deliveryFee : 0);
@@ -42,7 +55,6 @@ export function CheckoutModal({
     event.preventDefault();
     onPlaceOrder({
       ...form,
-      paymentMethod: 'Flutterwave',
       customerEmail: customerProfile?.email || form.customerEmail,
       total,
       subtotal,
@@ -65,11 +77,13 @@ export function CheckoutModal({
                   <p className="text-xs uppercase tracking-[0.24em] text-[var(--text-secondary)]">Checkout</p>
                   <h3 className="mt-2 font-display text-3xl text-[var(--text-primary)] sm:text-4xl">Finish your order</h3>
                   <p className="mt-3 max-w-2xl text-sm leading-6 text-[var(--text-secondary)]">
-                    The checkout header stays fixed while the payment form scrolls, so customers can keep the order context in view from start to finish.
+                    Choose the payment flow that fits your customer journey: direct WhatsApp handoff or secure Flutterwave checkout.
                   </p>
-                  <div className="mt-3 inline-flex max-w-full items-center rounded-full border border-[var(--line)] bg-white/[0.03] px-4 py-2 text-sm text-[var(--gold-soft)]">
-                    <span className="truncate">Signed in as {customerProfile?.email || 'a logged-in customer'}</span>
-                  </div>
+                  {customerProfile?.email ? (
+                    <div className="mt-3 inline-flex max-w-full items-center rounded-full border border-[var(--line)] bg-white/[0.03] px-4 py-2 text-sm text-[var(--gold-soft)]">
+                      <span className="truncate">Signed in as {customerProfile.email}</span>
+                    </div>
+                  ) : null}
                 </div>
                 <button
                   type="button"
@@ -89,7 +103,7 @@ export function CheckoutModal({
                     <p className="text-xs uppercase tracking-[0.24em] text-[var(--accent-green)]">Customer details</p>
                     <h4 className="mt-2 font-display text-2xl text-[var(--text-primary)] sm:text-3xl">Delivery information</h4>
                   </div>
-                  <p className="text-sm text-[var(--text-secondary)]">Everything stays on one secure, scrollable payment flow.</p>
+                  <p className="text-sm text-[var(--text-secondary)]">Everything stays in one mobile-friendly checkout flow.</p>
                 </div>
 
                 <div className="mt-5 grid gap-4 md:grid-cols-2">
@@ -115,8 +129,11 @@ export function CheckoutModal({
                     <input
                       type="email"
                       value={customerProfile?.email || form.customerEmail}
-                      readOnly
-                      className="input-style cursor-not-allowed bg-white/[0.02] text-[var(--text-secondary)]"
+                      onChange={(e) => updateField('customerEmail', e.target.value)}
+                      readOnly={Boolean(customerProfile?.email)}
+                      required={form.paymentMethod === 'Flutterwave'}
+                      className={`input-style ${customerProfile?.email ? 'cursor-not-allowed bg-white/[0.02] text-[var(--text-secondary)]' : ''}`}
+                      placeholder="you@example.com"
                     />
                   </Field>
                   <Field label="Delivery address" className="md:col-span-2">
@@ -141,19 +158,73 @@ export function CheckoutModal({
 
               <section className="rounded-[1.6rem] border border-[var(--line)] bg-white/[0.03] p-4 sm:p-5">
                 <p className="text-xs uppercase tracking-[0.24em] text-[var(--accent-green)]">Payment option</p>
-                <h4 className="mt-2 font-display text-2xl text-[var(--text-primary)] sm:text-3xl">Flutterwave checkout</h4>
-                <div className="mt-5 rounded-[1.3rem] border border-[var(--gold)]/25 bg-[var(--gold)]/10 p-4 text-left">
-                  <div className="flex items-start gap-3 text-[var(--text-primary)]">
-                    <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/10 text-[var(--gold)]">
-                      <Wallet size={18} />
-                    </span>
-                    <div className="min-w-0">
-                      <p className="font-medium">Pay online with Flutterwave</p>
-                      <p className="mt-1 text-xs leading-5 text-[var(--text-secondary)]">
-                        Standard e-commerce checkout now uses Flutterwave only, so all payment records and transaction history stay consistent for customers and the admin team.
-                      </p>
+                <h4 className="mt-2 font-display text-2xl text-[var(--text-primary)] sm:text-3xl">Choose how to complete payment</h4>
+
+                <div className="mt-5 grid gap-3 lg:grid-cols-2">
+                  {paymentMethods.map((method) => {
+                    const selected = form.paymentMethod === method;
+                    const isWhatsApp = method === 'WhatsApp';
+                    const Icon = isWhatsApp ? MessageCircle : Wallet;
+                    return (
+                      <label
+                        key={method}
+                        className={`cursor-pointer rounded-[1.3rem] border p-4 transition ${
+                          selected
+                            ? 'border-[var(--gold)]/35 bg-[var(--gold)]/10'
+                            : 'border-[var(--line)] bg-white/[0.03] hover:border-[var(--gold)]/20'
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="paymentMethod"
+                          value={method}
+                          checked={selected}
+                          onChange={(e) => updateField('paymentMethod', e.target.value)}
+                          className="sr-only"
+                        />
+                        <div className="flex items-start gap-3 text-[var(--text-primary)]">
+                          <span className={`inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${selected ? 'bg-white/12 text-[var(--gold)]' : 'bg-white/8 text-[var(--gold-soft)]'}`}>
+                            <Icon size={18} />
+                          </span>
+                          <div className="min-w-0">
+                            <p className="font-medium">{method}</p>
+                            <p className="mt-1 text-xs leading-5 text-[var(--text-secondary)]">
+                              {isWhatsApp
+                                ? 'Send the order summary directly to the store owner for manual confirmation and payment coordination.'
+                                : 'Pay online through Flutterwave for instant verification and automatic transaction history.'}
+                            </p>
+                          </div>
+                        </div>
+                      </label>
+                    );
+                  })}
+                </div>
+
+                <div className="mt-4 rounded-[1.2rem] border border-white/8 bg-[#111314] p-4 text-sm text-[var(--text-secondary)]">
+                  {form.paymentMethod === 'WhatsApp' ? (
+                    <div className="flex items-start gap-3">
+                      <MessageCircle size={18} className="mt-0.5 shrink-0 text-[var(--accent-green)]" />
+                      <div>
+                        <p className="text-[var(--text-primary)]">WhatsApp orders are not recorded in admin transactions.</p>
+                        <p className="mt-1 leading-6">
+                          The checkout will open WhatsApp with a complete order summary so the store owner can handle payment and record it manually.
+                          {whatsappNumber ? ' The configured business number will be used automatically.' : ' Add a valid WhatsApp number in store settings to enable this handoff.'}
+                        </p>
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    <div className="flex items-start gap-3">
+                      <ShieldCheck size={18} className="mt-0.5 shrink-0 text-[var(--gold)]" />
+                      <div>
+                        <p className="text-[var(--text-primary)]">Flutterwave keeps standard e-commerce records.</p>
+                        <p className="mt-1 leading-6">
+                          {isAuthenticated
+                            ? 'Your payment will be verified online and saved to your account transaction history and the admin dashboard.'
+                            : 'Sign in is required before Flutterwave payment so the order can be linked to your account and tracked properly.'}
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </section>
 
@@ -188,11 +259,11 @@ export function CheckoutModal({
               <div className="pb-2">
                 <button
                   type="submit"
-                  disabled={submitting}
+                  disabled={submitting || (form.paymentMethod === 'WhatsApp' && !whatsappNumber)}
                   className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[var(--gold)] px-5 py-3 text-sm font-semibold text-[#111] disabled:opacity-70"
                 >
                   {submitting ? <LoaderCircle size={16} className="animate-spin" /> : null}
-                  Pay with Flutterwave
+                  {form.paymentMethod === 'WhatsApp' ? 'Continue to WhatsApp' : 'Pay with Flutterwave'}
                 </button>
               </div>
             </form>

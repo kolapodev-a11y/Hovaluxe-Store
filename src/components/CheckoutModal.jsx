@@ -25,13 +25,19 @@ export function CheckoutModal({
   useEffect(() => {
     if (!open) return undefined;
 
+    setForm((current) => ({
+      ...current,
+      customerName: customerProfile?.name || '',
+      customerEmail: customerProfile?.email || '',
+    }));
+
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
 
     return () => {
       document.body.style.overflow = previousOverflow;
     };
-  }, [open]);
+  }, [customerProfile, open]);
 
   const subtotal = useMemo(() => cart.reduce((sum, item) => sum + item.price * item.quantity, 0), [cart]);
   const total = subtotal + (cart.length ? deliveryFee : 0);
@@ -40,7 +46,14 @@ export function CheckoutModal({
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    onPlaceOrder({ ...form, total, subtotal, shipping: deliveryFee });
+    onPlaceOrder({
+      ...form,
+      customerName: customerProfile?.name || form.customerName,
+      customerEmail: customerProfile?.email || form.customerEmail,
+      total,
+      subtotal,
+      shipping: deliveryFee,
+    });
   };
 
   if (!open) {
@@ -53,11 +66,15 @@ export function CheckoutModal({
       <div className="fixed inset-0 z-[60] flex items-end justify-center p-3 sm:items-center sm:p-6">
         <div className="flex max-h-[calc(100vh-0.75rem)] w-full max-w-5xl flex-col overflow-hidden rounded-[2rem] border border-[var(--line)] bg-[#0c0d0d] shadow-[0_20px_80px_rgba(0,0,0,.55)] sm:max-h-[calc(100vh-2rem)]">
           <div className="flex items-start justify-between gap-4 border-b border-[var(--line)] px-4 py-4 sm:px-6 sm:py-5">
-            <div>
+            <div className="min-w-0">
               <p className="text-xs uppercase tracking-[0.24em] text-[var(--text-secondary)]">Checkout</p>
               <h3 className="mt-2 font-display text-3xl text-[var(--text-primary)] sm:text-4xl">Finish your order</h3>
-              <p className="mt-2 max-w-2xl text-sm leading-7 text-[var(--text-secondary)]">
-                You are checking out as <span className="text-[var(--gold-soft)]">{customerProfile?.email || 'a logged-in customer'}</span>. Add your delivery details and choose how you want to complete the order.
+              <p className="mt-3 text-sm leading-6 break-words text-[var(--text-secondary)]">
+                You are checking out as
+                <span className="mt-1 block break-all text-[var(--gold-soft)]">
+                  {customerProfile?.email || 'a logged-in customer'}
+                </span>
+                Add your delivery details and choose how you want to complete the order.
               </p>
             </div>
             <button type="button" onClick={onClose} className="rounded-full border border-[var(--line)] bg-white/5 p-3 text-[var(--text-primary)]">
@@ -66,32 +83,50 @@ export function CheckoutModal({
           </div>
 
           <div className="grid min-h-0 flex-1 gap-0 lg:grid-cols-[minmax(0,1fr)_340px]">
-            <form className="min-h-0 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5" onSubmit={handleSubmit}>
-              <div className="space-y-4">
-                <Field label="Customer name">
-                  <input value={form.customerName} onChange={(e) => updateField('customerName', e.target.value)} required className="input-style placeholder:text-sm" placeholder="Adaeze Martins" />
+            <form className="min-h-0 overflow-y-auto px-4 py-4 scrollbar-thin sm:px-6 sm:py-5" onSubmit={handleSubmit}>
+              <div className="grid gap-4 md:grid-cols-2">
+                <Field label="Customer name" className="md:col-span-2">
+                  <input
+                    value={customerProfile?.name || form.customerName}
+                    readOnly
+                    className="input-style cursor-not-allowed bg-white/[0.02] text-[var(--text-secondary)]"
+                  />
                 </Field>
                 <Field label="Phone number">
-                  <input value={form.customerPhone} onChange={(e) => updateField('customerPhone', e.target.value)} required className="input-style placeholder:text-sm" placeholder="08031234567" />
+                  <input
+                    value={form.customerPhone}
+                    onChange={(e) => updateField('customerPhone', e.target.value)}
+                    required
+                    className="input-style placeholder:text-sm"
+                    placeholder="08031234567"
+                  />
                 </Field>
                 <Field label="Email address">
                   <input
                     type="email"
-                    value={form.customerEmail}
-                    onChange={(e) => updateField('customerEmail', e.target.value)}
-                    required={form.paymentMethod === 'Flutterwave'}
-                    className="input-style placeholder:text-sm"
-                    placeholder="Required for Flutterwave, optional for WhatsApp"
+                    value={customerProfile?.email || form.customerEmail}
+                    readOnly
+                    className="input-style cursor-not-allowed bg-white/[0.02] text-[var(--text-secondary)]"
                   />
                 </Field>
-                <Field label="Delivery address">
-                  <textarea value={form.shippingAddress} onChange={(e) => updateField('shippingAddress', e.target.value)} required className="input-style min-h-28 resize-none placeholder:text-sm" placeholder="Where should we deliver the order?" />
+                <Field label="Delivery address" className="md:col-span-2">
+                  <textarea
+                    value={form.shippingAddress}
+                    onChange={(e) => updateField('shippingAddress', e.target.value)}
+                    required
+                    className="input-style min-h-28 resize-none placeholder:text-sm"
+                    placeholder="Where should we deliver the order?"
+                  />
                 </Field>
-                <Field label="Order notes">
-                  <textarea value={form.notes} onChange={(e) => updateField('notes', e.target.value)} className="input-style min-h-24 resize-none placeholder:text-sm" placeholder="Optional directions, preferred contact time, or special request" />
+                <Field label="Order notes" className="md:col-span-2">
+                  <textarea
+                    value={form.notes}
+                    onChange={(e) => updateField('notes', e.target.value)}
+                    className="input-style min-h-24 resize-none placeholder:text-sm"
+                    placeholder="Optional directions, preferred contact time, or special request"
+                  />
                 </Field>
-
-                <Field label="Payment method">
+                <Field label="Payment method" className="md:col-span-2">
                   <div className="grid gap-3 md:grid-cols-2">
                     {['WhatsApp', 'Flutterwave'].map((method) => (
                       <button
@@ -110,7 +145,7 @@ export function CheckoutModal({
                           </span>
                           <div className="min-w-0">
                             <p className="font-medium">{method}</p>
-                            <p className="mt-1 text-xs leading-6 text-[var(--text-secondary)]">
+                            <p className="mt-1 text-xs leading-5 text-[var(--text-secondary)] break-words">
                               {method === 'WhatsApp'
                                 ? 'Send your order summary to the Hovaluxe team'
                                 : 'Continue to secure Flutterwave payment'}
@@ -142,7 +177,7 @@ export function CheckoutModal({
                   <div key={item.id} className="flex items-start justify-between gap-3 rounded-[1rem] border border-white/8 bg-black/10 px-3 py-3">
                     <div className="min-w-0">
                       <p className="text-[var(--text-primary)]">{item.name}</p>
-                      <p className="mt-1">{item.quantity} × {formatPrice(item.price)}</p>
+                      <p className="mt-1 break-words">{item.quantity} × {formatPrice(item.price)}</p>
                     </div>
                     <span className="shrink-0">{formatPrice(item.price * item.quantity)}</span>
                   </div>
@@ -170,9 +205,9 @@ export function CheckoutModal({
   );
 }
 
-function Field({ label, children }) {
+function Field({ label, children, className = '' }) {
   return (
-    <label className="block space-y-2">
+    <label className={`block space-y-2 ${className}`}>
       <span className="text-sm font-medium text-[var(--text-primary)]">{label}</span>
       {children}
     </label>

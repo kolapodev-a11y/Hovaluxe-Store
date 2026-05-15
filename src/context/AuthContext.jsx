@@ -59,6 +59,18 @@ export function AuthProvider({ children }) {
     ? { ...session, user: normalizedUser }
     : null;
 
+  const clearSession = () => {
+    setSession(null);
+    return true;
+  };
+
+  const requestLogout = (message = 'Are you sure you want to log out?') => {
+    if (typeof window !== 'undefined' && !window.confirm(message)) {
+      return false;
+    }
+    return clearSession();
+  };
+
   const value = useMemo(
     () => ({
       session: normalizedSession,
@@ -68,7 +80,8 @@ export function AuthProvider({ children }) {
       isAdmin: isAdminRole(normalizedUser?.role),
       setSession,
       login: (nextSession) => setSession(nextSession),
-      logout: () => setSession(null),
+      logout: clearSession,
+      requestLogout,
     }),
     [normalizedSession, normalizedUser],
   );

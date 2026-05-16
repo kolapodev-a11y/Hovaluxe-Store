@@ -4,6 +4,10 @@ export const GOOGLE_CLIENT_ID = (
   import.meta.env.VITE_GOOGLE_CLIENT_ID || import.meta.env.VITE_GOGGLE_CLIENT_ID || ''
 ).trim();
 
+export function resolveGoogleClientId(clientId = '') {
+  return String(clientId || GOOGLE_CLIENT_ID).trim();
+}
+
 export function isAuthorizedAdminEmail(email = '') {
   return Boolean(ADMIN_EMAIL) && String(email).trim().toLowerCase() === ADMIN_EMAIL;
 }
@@ -40,12 +44,6 @@ export function normalizeGoogleProfile(payload = {}) {
 export function loadGoogleIdentityScript() {
   if (typeof window === 'undefined') {
     return Promise.reject(new Error('Google sign-in is only available in the browser.'));
-  }
-
-  if (!GOOGLE_CLIENT_ID) {
-    return Promise.reject(
-      new Error('Google sign-in is not configured. Set VITE_GOOGLE_CLIENT_ID or the legacy VITE_GOGGLE_CLIENT_ID.'),
-    );
   }
 
   if (window.google?.accounts?.id) {

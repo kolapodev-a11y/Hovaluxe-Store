@@ -185,11 +185,27 @@ export function StorefrontPage() {
 
   useEffect(() => {
     const sectionId = location.state?.scrollTo;
-    if (!sectionId) {
+    const restoreCategory = location.state?.restoreCategory;
+    const restoreSearch = typeof location.state?.restoreSearch === 'string'
+      ? location.state.restoreSearch
+      : null;
+
+    if (!sectionId && !restoreCategory && restoreSearch === null) {
       return;
     }
 
-    scrollToSection(sectionId);
+    if (restoreCategory) {
+      setActiveCategory(restoreCategory);
+    }
+
+    if (restoreSearch !== null) {
+      setSearch(restoreSearch);
+    }
+
+    if (sectionId) {
+      scrollToSection(sectionId);
+    }
+
     navigate(location.pathname, { replace: true, state: null });
   }, [location.pathname, location.state, navigate]);
 
@@ -224,10 +240,14 @@ export function StorefrontPage() {
     [config.twitterHandle, config.twitterUrl],
   );
 
+  const handleCatalogBrowse = ({ category = 'All', searchTerm = '', sectionId = catalogSectionId } = {}) => {
+    setSearch(searchTerm);
+    setActiveCategory(category);
+    scrollToSection(sectionId);
+  };
+
   const handleFooterCategoryClick = (categoryTitle) => {
-    setSearch('');
-    setActiveCategory(categoryTitle);
-    scrollToSection(catalogSectionId);
+    handleCatalogBrowse({ category: categoryTitle });
   };
 
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
@@ -335,7 +355,12 @@ export function StorefrontPage() {
         onCartOpen={() => setCartOpen(true)}
         showTransactionSection={isAuthenticated}
       />
-      <HeroSection notice={config.heroNotice} cartCount={cartCount} onCartOpen={() => setCartOpen(true)} />
+      <HeroSection
+        notice={config.heroNotice}
+        cartCount={cartCount}
+        onCartOpen={() => setCartOpen(true)}
+        onShopCollection={() => handleCatalogBrowse({ category: 'All' })}
+      />
 
       {notice ? (
         <div className="mx-auto max-w-7xl px-4 pt-6 md:px-6 lg:px-8">
@@ -354,18 +379,24 @@ export function StorefrontPage() {
             description="Explore the product families that shape the Hovaluxe store experience."
             align="center"
           />
-          <div className="grid gap-4 md:grid-cols-3 xl:grid-cols-5">
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
             {categoryCards.map(({ title, text, icon: Icon }) => (
-              <article
+              <button
                 key={title}
-                className="luxe-panel rounded-[1.6rem] p-5 text-center transition hover:-translate-y-1"
+                type="button"
+                onClick={() => handleCatalogBrowse({ category: title })}
+                className="luxe-panel w-full rounded-[1.35rem] p-4 text-center transition hover:-translate-y-1 hover:border-[var(--gold)]/30 sm:p-[1.125rem]"
               >
-                <span className="mx-auto inline-flex h-14 w-14 items-center justify-center rounded-[1.1rem] border border-[var(--gold)]/20 bg-[linear-gradient(135deg,rgba(216,192,122,0.18),rgba(216,192,122,0.05))] text-[var(--gold-soft)]">
-                  <Icon size={22} />
+                <span className="mx-auto inline-flex h-11 w-11 items-center justify-center rounded-[0.9rem] border border-[var(--gold)]/20 bg-[linear-gradient(135deg,rgba(216,192,122,0.18),rgba(216,192,122,0.05))] text-[var(--gold-soft)] sm:h-12 sm:w-12">
+                  <Icon size={18} />
                 </span>
-                <h3 className="mt-4 font-display text-[2rem] text-[var(--gold-soft)]">{title}</h3>
-                <p className="mt-2 text-sm leading-7 text-[var(--text-secondary)]">{text}</p>
-              </article>
+                <h3 className="mt-3 font-display text-xl leading-tight text-[var(--gold-soft)] sm:text-2xl">{title}</h3>
+                <p className="mt-2 text-xs leading-6 text-[var(--text-secondary)] sm:text-sm sm:leading-6">{text}</p>
+                <span className="mt-3 inline-flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-[0.2em] text-[var(--gold-soft)] sm:text-xs">
+                  Browse
+                  <ArrowRight size={13} />
+                </span>
+              </button>
             ))}
           </div>
         </section>
@@ -391,7 +422,16 @@ export function StorefrontPage() {
                     className="w-[240px] shrink-0 sm:w-[250px] lg:w-[260px]"
                     style={{ scrollSnapAlign: 'start' }}
                   >
-                    <ProductCard product={product} compact />
+                    <ProductCard
+                      product={product}
+                      compact
+                      linkState={{
+                        fromPath: '/',
+                        scrollTo: 'collections',
+                        restoreCategory: 'All',
+                        restoreSearch: '',
+                      }}
+                    />
                   </div>
                 ))}
               </div>
@@ -440,6 +480,12 @@ export function StorefrontPage() {
                 <ProductCard
                   key={product.id}
                   product={product}
+                  linkState={{
+                    fromPath: '/',
+                    scrollTo: catalogSectionId,
+                    restoreCategory: activeCategory,
+                    restoreSearch: search,
+                  }}
                 />
               ))}
             </div>

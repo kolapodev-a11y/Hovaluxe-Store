@@ -302,19 +302,6 @@ export function AdminPage() {
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
-              {activeTab === 'products' ? (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEditingProduct(null);
-                    setModalOpen(true);
-                  }}
-                  className="inline-flex items-center gap-2 rounded-full bg-[var(--gold)] px-5 py-2.5 text-sm font-semibold text-[#111]"
-                >
-                  <PackagePlus size={15} />
-                  Add product
-                </button>
-              ) : null}
               {activeTab === 'orders' ? (
                 <button
                   type="button"
@@ -406,8 +393,19 @@ export function AdminPage() {
           {/* Products */}
           {!loading && activeTab === 'products' ? (
             <div className="mt-6 space-y-4">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <p className="text-sm text-[var(--text-secondary)]">{products.length} product{products.length !== 1 ? 's' : ''} in catalog</p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingProduct(null);
+                    setModalOpen(true);
+                  }}
+                  className="inline-flex items-center gap-2 self-start rounded-full bg-[var(--gold)] px-5 py-2.5 text-sm font-semibold text-[#111]"
+                >
+                  <PackagePlus size={15} />
+                  Add product
+                </button>
               </div>
 
               {products.length ? (

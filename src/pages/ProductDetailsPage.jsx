@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, ChevronLeft, ChevronRight, Heart, LoaderCircle, ShoppingBag, ZoomIn } from 'lucide-react';
-import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
+import { Link, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Header } from '../components/Header';
 import { ImageLightbox } from '../components/ImageLightbox';
 import { useAuth } from '../context/AuthContext';
@@ -25,6 +25,7 @@ function QuantityButton({ children, onClick, disabled }) {
 
 export function ProductDetailsPage() {
   const { productId = '', productSlug = '' } = useParams();
+  const location = useLocation();
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   const { isWishlisted, toggleWishlist } = useWishlist();
@@ -114,7 +115,13 @@ export function ProductDetailsPage() {
   };
 
   const goBackToStore = () => {
-    navigate('/');
+    navigate(location.state?.fromPath || '/', {
+      state: {
+        scrollTo: location.state?.scrollTo || 'catalog',
+        restoreCategory: location.state?.restoreCategory || 'All',
+        restoreSearch: location.state?.restoreSearch || '',
+      },
+    });
   };
 
   if (!loading && !product && !error) {

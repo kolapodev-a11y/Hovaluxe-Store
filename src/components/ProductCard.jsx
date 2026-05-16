@@ -5,6 +5,8 @@ import { formatPrice } from '../utils/format';
 import { buildProductPath, getProductImages } from '../data/store';
 import { useWishlist } from '../context/WishlistContext';
 
+const STOREFRONT_RETURN_STATE_KEY = 'hovaluxe_storefront_return';
+
 export function ProductCard({
   product,
   onAddToCart,
@@ -19,13 +21,42 @@ export function ProductCard({
   const { isWishlisted, toggleWishlist } = useWishlist();
   const wishlisted = isWishlisted(product.id);
 
+  const handleProductClick = (event) => {
+    if (typeof window === 'undefined') return;
+
+    const returnState = {
+      ...(linkState || {}),
+      restoreScrollY: window.scrollY,
+    };
+
+    const scrollTrack = event.currentTarget.closest('[data-store-scroll-track]');
+    const trackId = scrollTrack?.dataset?.storeScrollTrack;
+
+    if (trackId) {
+      returnState.restoreTrackId = trackId;
+      returnState.restoreTrackScrollLeft = scrollTrack.scrollLeft;
+    }
+
+    try {
+      window.sessionStorage.setItem(STOREFRONT_RETURN_STATE_KEY, JSON.stringify(returnState));
+    } catch {
+      // Ignore storage errors and allow navigation to continue.
+    }
+  };
+
   return (
     <article
       className={`group overflow-hidden rounded-[1.45rem] border border-[var(--line)] bg-[#0f1010] shadow-[0_18px_45px_rgba(0,0,0,.18)] transition duration-300 hover:-translate-y-1 hover:border-[var(--gold)]/28 ${
         compact ? 'rounded-[1.25rem]' : ''
       }`}
     >
-      <Link to={productPath} state={linkState} className="block" aria-label={`View details for ${product.name}`}>
+      <Link
+        to={productPath}
+        state={linkState}
+        onClick={handleProductClick}
+        className="block"
+        aria-label={`View details for ${product.name}`}
+      >
         <div className={`overflow-hidden bg-[#090909] ${compact ? 'aspect-[4/5]' : 'aspect-[4/5]'}`}>
           <img
             src={image}

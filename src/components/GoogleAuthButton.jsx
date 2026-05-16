@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
-import { GOOGLE_CLIENT_ID, loadGoogleIdentityScript } from '../lib/googleAuth';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { loadGoogleIdentityScript, resolveGoogleClientId } from '../lib/googleAuth';
 
 export function GoogleAuthButton({
   onCredential,
@@ -7,16 +7,18 @@ export function GoogleAuthButton({
   theme = 'outline',
   text = 'continue_with',
   width = 320,
+  clientId = '',
 }) {
   const containerRef = useRef(null);
   const [message, setMessage] = useState('');
+  const resolvedClientId = useMemo(() => resolveGoogleClientId(clientId), [clientId]);
 
   useEffect(() => {
     let active = true;
 
     async function mountGoogleButton() {
-      if (!GOOGLE_CLIENT_ID) {
-        setMessage('Set VITE_GOOGLE_CLIENT_ID to enable Google sign-in.');
+      if (!resolvedClientId) {
+        setMessage('Google sign-in is not configured yet.');
         return;
       }
 
@@ -26,7 +28,7 @@ export function GoogleAuthButton({
 
         const accounts = window.google.accounts.id;
         accounts.initialize({
-          client_id: GOOGLE_CLIENT_ID,
+          client_id: resolvedClientId,
           callback: (response) => {
             if (!response?.credential) {
               setMessage('Unable to read the Google sign-in response.');
@@ -62,7 +64,7 @@ export function GoogleAuthButton({
         containerRef.current.innerHTML = '';
       }
     };
-  }, [onCredential, text, theme, width]);
+  }, [onCredential, resolvedClientId, text, theme, width]);
 
   return (
     <div className={className}>

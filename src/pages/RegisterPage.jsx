@@ -14,6 +14,7 @@ export function RegisterPage() {
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [googleEnabled, setGoogleEnabled] = useState(false);
+  const [googleClientId, setGoogleClientId] = useState('');
   const [emailEnabled, setEmailEnabled] = useState(true);
   const [authProvidersLoaded, setAuthProvidersLoaded] = useState(false);
 
@@ -27,10 +28,12 @@ export function RegisterPage() {
         const response = await api.getAuthProviders();
         if (!active) return;
         setGoogleEnabled(Boolean(response?.data?.google?.enabled));
+        setGoogleClientId(String(response?.data?.google?.clientId || ''));
         setEmailEnabled(response?.data?.email?.enabled !== false);
       } catch {
         if (!active) return;
         setGoogleEnabled(false);
+        setGoogleClientId('');
         setEmailEnabled(true);
       } finally {
         if (active) setAuthProvidersLoaded(true);
@@ -177,7 +180,12 @@ export function RegisterPage() {
           {authProvidersLoaded ? (
             googleEnabled ? (
               <div className="mt-4">
-                <GoogleAuthButton onCredential={handleGoogleLogin} className="flex justify-center" width={320} />
+                <GoogleAuthButton
+                  onCredential={handleGoogleLogin}
+                  className="flex justify-center"
+                  width={320}
+                  clientId={googleClientId}
+                />
               </div>
             ) : (
               <div className="mt-4 rounded-2xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">

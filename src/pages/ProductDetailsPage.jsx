@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { ArrowLeft, ChevronLeft, ChevronRight, Heart, LoaderCircle, ShoppingBag, ZoomIn } from 'lucide-react';
 import { Link, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Header } from '../components/Header';
@@ -9,6 +9,19 @@ import { buildProductPath, getProductImages, normalizeProduct, slugifyProductNam
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { api } from '../lib/api';
 import { formatPrice, titleCase } from '../utils/format';
+
+const STOREFRONT_RETURN_STATE_KEY = 'hovaluxe_storefront_return';
+
+function readStoredStorefrontReturnState() {
+  if (typeof window === 'undefined') return null;
+
+  try {
+    const raw = window.sessionStorage.getItem(STOREFRONT_RETURN_STATE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
 
 function QuantityButton({ children, onClick, disabled }) {
   return (
@@ -82,6 +95,12 @@ export function ProductDetailsPage() {
     };
   }, [productId, productSlug]);
 
+  useLayoutEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  }, [productId, productSlug]);
+
   useEffect(() => {
     setActiveImageIndex(0);
     setQuantity(1);
@@ -115,13 +134,39 @@ export function ProductDetailsPage() {
   };
 
   const goBackToStore = () => {
-    navigate(location.state?.fromPath || '/', {
-      state: {
-        scrollTo: location.state?.scrollTo || 'catalog',
-        restoreCategory: location.state?.restoreCategory || 'All',
-        restoreSearch: location.state?.restoreSearch || '',
-      },
-    });
+    const storedReturnState = readStoredStorefrontReturnState();
+
+    const fromPath = location.state?.fromPath || storedReturnState?.fromPath || '/';
+    const restoreSearch = typeof location.state?.restoreSearch === 'string'
+      ? location.state.restoreSearch
+      : typeof storedReturnState?.restoreSearch === 'string'
+        ? storedReturnState.restoreSearch
+        : '';
+
+    const returnState = {
+      scrollTo: location.state?.scrollTo || storedReturnState?.scrollTo || 'catalog',
+      restoreCategory: location.state?.restoreCategory || storedReturnState?.restoreCategory || 'All',
+      restoreSearch,
+    };
+
+    if (Number.isFinite(location.state?.restoreScrollY)) {
+      returnState.restoreScrollY = Number(location.state.restoreScrollY);
+    } else if (Number.isFinite(storedReturnState?.restoreScrollY)) {
+      returnState.restoreScrollY = Number(storedReturnState.restoreScrollY);
+    }
+
+    const restoreTrackId = location.state?.restoreTrackId || storedReturnState?.restoreTrackId || '';
+    if (restoreTrackId) {
+      returnState.restoreTrackId = restoreTrackId;
+    }
+
+    if (Number.isFinite(location.state?.restoreTrackScrollLeft)) {
+      returnState.restoreTrackScrollLeft = Number(location.state.restoreTrackScrollLeft);
+    } else if (Number.isFinite(storedReturnState?.restoreTrackScrollLeft)) {
+      returnState.restoreTrackScrollLeft = Number(storedReturnState.restoreTrackScrollLeft);
+    }
+
+    navigate(fromPath, { state: returnState });
   };
 
   if (!loading && !product && !error) {

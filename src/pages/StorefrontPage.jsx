@@ -64,6 +64,7 @@ const categoryCards = [
 ];
 
 const catalogSectionId = 'catalog';
+const STOREFRONT_RETURN_STATE_KEY = 'hovaluxe_storefront_return';
 
 const normalizePhoneNumber = (value = '') => String(value || '').replace(/[^\d]/g, '');
 
@@ -106,10 +107,42 @@ const buildWhatsAppOrderLink = ({ phoneNumber, customerName, customerPhone, cust
   return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
 };
 
-const scrollToSection = (sectionId) => {
+const readStoredStorefrontReturnState = () => {
+  if (typeof window === 'undefined') return null;
+
+  try {
+    const raw = window.sessionStorage.getItem(STOREFRONT_RETURN_STATE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+};
+
+const clearStoredStorefrontReturnState = () => {
+  if (typeof window === 'undefined') return;
+
+  try {
+    window.sessionStorage.removeItem(STOREFRONT_RETURN_STATE_KEY);
+  } catch {
+    // Ignore storage cleanup errors.
+  }
+};
+
+const restoreTrackScroll = (trackId, scrollLeft = 0) => {
+  if (typeof document === 'undefined' || !trackId) return;
+
+  window.requestAnimationFrame(() => {
+    const track = document.querySelector(`[data-store-scroll-track="${trackId}"]`);
+    if (track) {
+      track.scrollLeft = Number(scrollLeft) || 0;
+    }
+  });
+};
+
+const scrollToSection = (sectionId, { behavior = 'smooth' } = {}) => {
   if (typeof document === 'undefined') return;
   window.requestAnimationFrame(() => {
-    document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document.getElementById(sectionId)?.scrollIntoView({ behavior, block: 'start' });
   });
 };
 
@@ -184,13 +217,20 @@ export function StorefrontPage() {
   }, [location.pathname, navigate, shouldResumeCheckout]);
 
   useEffect(() => {
-    const sectionId = location.state?.scrollTo;
-    const restoreCategory = location.state?.restoreCategory;
-    const restoreSearch = typeof location.state?.restoreSearch === 'string'
-      ? location.state.restoreSearch
+    const persistedReturnState = readStoredStorefrontReturnState();
+    const state = location.state || persistedReturnState || {};
+    const sectionId = state.scrollTo;
+    const restoreCategory = state.restoreCategory;
+    const restoreSearch = typeof state.restoreSearch === 'string'
+      ? state.restoreSearch
       : null;
+    const restoreScrollY = Number.isFinite(state.restoreScrollY) ? Number(state.restoreScrollY) : null;
+    const restoreTrackId = String(state.restoreTrackId || '').trim();
+    const restoreTrackScrollLeft = Number.isFinite(state.restoreTrackScrollLeft)
+      ? Number(state.restoreTrackScrollLeft)
+      : 0;
 
-    if (!sectionId && !restoreCategory && restoreSearch === null) {
+    if (!sectionId && !restoreCategory && restoreSearch === null && restoreScrollY === null && !restoreTrackId) {
       return;
     }
 
@@ -202,12 +242,24 @@ export function StorefrontPage() {
       setSearch(restoreSearch);
     }
 
-    if (sectionId) {
-      scrollToSection(sectionId);
+    if (restoreTrackId) {
+      restoreTrackScroll(restoreTrackId, restoreTrackScrollLeft);
     }
 
-    navigate(location.pathname, { replace: true, state: null });
-  }, [location.pathname, location.state, navigate]);
+    if (restoreScrollY !== null) {
+      window.requestAnimationFrame(() => {
+        window.scrollTo({ top: restoreScrollY, left: 0, behavior: 'auto' });
+      });
+    } else if (sectionId) {
+      scrollToSection(sectionId, { behavior: 'auto' });
+    }
+
+    clearStoredStorefrontReturnState();
+
+    if (location.state) {
+      navigate(location.pathname, { replace: true, state: null });
+    }
+  }, [location.pathname, location.state, navigate, productsLoading]);
 
   useEffect(() => {
     if (!location.state?.openCart) {
@@ -415,6 +467,7 @@ export function StorefrontPage() {
               <div
                 className="scrollbar-thin flex gap-5 overflow-x-auto pb-4"
                 style={{ scrollSnapType: 'x mandatory' }}
+                data-store-scroll-track="collections"
               >
                 {featuredProducts.map((product) => (
                   <div

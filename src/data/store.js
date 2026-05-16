@@ -91,6 +91,25 @@ export function resolveProductImage(product) {
   return getProductImages(product)[0];
 }
 
+export function slugifyProductName(name = '') {
+  return String(name || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '') || 'product';
+}
+
+export function buildProductPath(product = {}) {
+  const productId = encodeURIComponent(String(product.id || product._id || '').trim());
+  const slug = encodeURIComponent(slugifyProductName(product.name));
+
+  if (!productId) {
+    return `/products/${slug}`;
+  }
+
+  return `/products/${productId}/${slug}`;
+}
+
 export function normalizeProduct(product) {
   const images = getProductImages(product);
   return {

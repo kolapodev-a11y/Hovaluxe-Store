@@ -11,6 +11,7 @@ export function ProductCard({
   compact = false,
   showWishlistToggle = false,
   showAddToCartButton = false,
+  linkState,
 }) {
   const disabled = product.status === 'out-of-stock' || product.status === 'sold';
   const image = useMemo(() => getProductImages(product)[0], [product]);
@@ -24,7 +25,7 @@ export function ProductCard({
         compact ? 'rounded-[1.25rem]' : ''
       }`}
     >
-      <Link to={productPath} className="block" aria-label={`View details for ${product.name}`}>
+      <Link to={productPath} state={linkState} className="block" aria-label={`View details for ${product.name}`}>
         <div className={`overflow-hidden bg-[#090909] ${compact ? 'aspect-[4/5]' : 'aspect-[4/5]'}`}>
           <img
             src={image}

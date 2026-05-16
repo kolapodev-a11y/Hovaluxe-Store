@@ -5,6 +5,7 @@ export function HeroSection({
   notice = 'Nationwide delivery available',
   cartCount = 0,
   onCartOpen,
+  onShopCollection,
 }) {
   return (
     <section className="relative overflow-hidden border-b border-[var(--line)]">
@@ -18,7 +19,7 @@ export function HeroSection({
             <p className="mt-3 text-[11px] uppercase tracking-[0.28em] text-[var(--text-secondary)] sm:text-sm sm:tracking-[0.32em]">
               {brand.name}
             </p>
-            <h1 className="mx-auto mt-4 max-w-[11ch] font-display text-[clamp(2.65rem,10vw,5rem)] leading-[0.96] text-[var(--text-primary)] lg:mx-0">
+            <h1 className="mx-auto mt-4 max-w-[14ch] font-display text-[clamp(2.2rem,8.8vw,5rem)] leading-[1] text-[var(--text-primary)] sm:max-w-[13ch] lg:mx-0 lg:max-w-[11ch]">
               Luxury scents for body, home and everyday confidence.
             </h1>
             <p className="mx-auto mt-5 max-w-2xl text-sm leading-7 text-[var(--text-secondary)] sm:text-base sm:leading-8 lg:mx-0">
@@ -26,13 +27,14 @@ export function HeroSection({
             </p>
 
             <div className="mt-7 flex flex-wrap justify-center gap-3 lg:justify-start">
-              <a
-                href="#collections"
+              <button
+                type="button"
+                onClick={onShopCollection}
                 className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[linear-gradient(135deg,var(--gold-soft),var(--gold))] px-5 py-3 text-sm font-semibold text-[#1b140b] shadow-[0_10px_24px_rgba(216,192,122,0.18)] transition hover:-translate-y-0.5 sm:min-h-13 sm:px-6"
               >
                 Shop collection
                 <ArrowRight size={16} />
-              </a>
+              </button>
               {cartCount > 0 ? (
                 <button
                   type="button"

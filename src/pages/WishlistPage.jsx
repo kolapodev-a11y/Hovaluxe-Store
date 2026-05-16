@@ -27,7 +27,7 @@ export function WishlistPage() {
 
   return (
     <div className="min-h-screen bg-[var(--bg)] text-[var(--text-primary)]">
-      <Header cartCount={cartCount} onCartOpen={() => navigate('/')} />
+      <Header cartCount={cartCount} onCartOpen={() => navigate('/', { state: { openCart: true } })} />
 
       <main className="mx-auto max-w-7xl px-4 py-10 md:px-6 lg:px-8">
         <section className="rounded-[2rem] border border-[var(--line)] bg-[#0f1010] p-6 shadow-[0_24px_70px_rgba(0,0,0,.36)] lg:p-8">
@@ -42,7 +42,13 @@ export function WishlistPage() {
           {items.length ? (
             <div className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
               {items.map((product) => (
-                <ProductCard key={product.id} product={product} onAddToCart={addToCart} />
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  onAddToCart={addToCart}
+                  showWishlistToggle
+                  showAddToCartButton
+                />
               ))}
             </div>
           ) : (
@@ -52,7 +58,7 @@ export function WishlistPage() {
               </div>
               <h2 className="mt-4 font-display text-3xl text-[var(--text-primary)]">Your wishlist is empty</h2>
               <p className="mt-3 text-sm leading-7 text-[var(--text-secondary)]">
-                Save products from the storefront by tapping the heart icon on each product card.
+                Open any product to save it to your wishlist, then return here when you are ready to compare or purchase.
               </p>
               <Link to="/" className="mt-6 inline-flex rounded-full bg-[var(--gold)] px-5 py-3 text-sm font-semibold text-[#111]">
                 Browse the store

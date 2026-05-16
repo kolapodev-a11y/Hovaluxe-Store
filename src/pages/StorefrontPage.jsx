@@ -193,6 +193,15 @@ export function StorefrontPage() {
     navigate(location.pathname, { replace: true, state: null });
   }, [location.pathname, location.state, navigate]);
 
+  useEffect(() => {
+    if (!location.state?.openCart) {
+      return;
+    }
+
+    setCartOpen(true);
+    navigate(location.pathname, { replace: true, state: null });
+  }, [location.pathname, location.state, navigate]);
+
   const filteredProducts = useMemo(() => {
     return products.filter((product) => {
       const categoryMatch = activeCategory === 'All' || product.category === activeCategory;
@@ -224,21 +233,6 @@ export function StorefrontPage() {
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
   const cartSubtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const checkoutEstimate = cartSubtotal + (cart.length ? config.deliveryFee : 0);
-
-  const addToCart = (product) => {
-    setCart((currentCart) => {
-      const existing = currentCart.find((item) => item.id === product.id);
-      if (existing) {
-        return currentCart.map((item) =>
-          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item,
-        );
-      }
-
-      return [...currentCart, { ...product, quantity: 1 }];
-    });
-    setCartOpen(true);
-    setNotice(`${product.name} was added to your cart.`);
-  };
 
   const updateQuantity = (id, nextQuantity) => {
     if (nextQuantity <= 0) {
@@ -382,7 +376,7 @@ export function StorefrontPage() {
             <SectionTitle
               eyebrow="Featured"
               title="Featured collection"
-              description="Handpicked scents from the Hovaluxe collection, curated for discerning tastes."
+              description="A clean product-first display. Tap any item to open its full details page."
               align="left"
             />
 
@@ -397,7 +391,7 @@ export function StorefrontPage() {
                     className="w-[240px] shrink-0 sm:w-[250px] lg:w-[260px]"
                     style={{ scrollSnapAlign: 'start' }}
                   >
-                    <ProductCard product={product} onAddToCart={addToCart} compact />
+                    <ProductCard product={product} compact />
                   </div>
                 ))}
               </div>
@@ -412,7 +406,7 @@ export function StorefrontPage() {
             <SectionTitle
               eyebrow="Shop"
               title="Shop the full catalog"
-              description="Search products and filter by category."
+              description="Only product image, name, and price appear here first. Click any product to view its full details and larger images."
               align="center"
             />
             <div className="mx-auto w-full max-w-md">
@@ -446,7 +440,6 @@ export function StorefrontPage() {
                 <ProductCard
                   key={product.id}
                   product={product}
-                  onAddToCart={addToCart}
                 />
               ))}
             </div>

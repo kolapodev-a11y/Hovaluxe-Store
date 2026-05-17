@@ -13,8 +13,8 @@ export function HeroSection({
       <div className="pointer-events-none absolute -bottom-24 -right-20 h-[320px] w-[320px] rounded-full bg-[radial-gradient(circle,rgba(37,211,102,0.08),transparent_60%)] blur-[80px] sm:h-[380px] sm:w-[380px]" />
 
       <div className="relative mx-auto max-w-7xl px-4 py-8 md:px-6 md:py-10 lg:px-8 lg:py-12">
-        <div className="grid items-center gap-5 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] lg:gap-10">
-          <div className="text-center lg:text-left">
+        <div className="grid gap-5 lg:gap-8">
+          <div className="text-center lg:max-w-3xl lg:text-left">
             <p className="eyebrow inline-flex justify-center lg:justify-start">{notice}</p>
             <p className="mt-2 text-[10px] uppercase tracking-[0.24em] text-[var(--text-secondary)] sm:text-xs sm:tracking-[0.3em]">
               {brand.name}
@@ -55,7 +55,7 @@ export function HeroSection({
             </div>
           </div>
 
-          <div className="mx-auto w-full max-w-[470px] luxe-panel rounded-[1.35rem] p-3.5 md:max-w-[560px] md:p-4.5 lg:mx-0 lg:max-w-none lg:rounded-[1.55rem] lg:p-5">
+          <div className="mx-auto w-full max-w-[470px] luxe-panel rounded-[1.3rem] p-3 md:max-w-[540px] md:p-4 lg:mx-0 lg:max-w-full lg:rounded-[1.5rem] lg:p-4.5">
             <div className="mb-3 flex items-center justify-between gap-3">
               <span className="text-[11px] text-[var(--text-muted)] sm:text-xs">Featured store preview</span>
               <span className="inline-flex items-center gap-2 rounded-full border border-[var(--accent-green)]/30 bg-[var(--accent-green)]/10 px-2.5 py-1 text-[10px] text-[var(--accent-green)] sm:px-3 sm:text-[11px]">
@@ -64,17 +64,17 @@ export function HeroSection({
               </span>
             </div>
 
-            <div className="relative min-h-[200px] overflow-hidden rounded-[1.15rem] border border-white/8 bg-[radial-gradient(circle_at_50%_20%,rgba(216,192,122,0.18),transparent_38%),linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] sm:min-h-[228px] lg:min-h-[300px] xl:min-h-[320px]">
-              <BottleVisual className="left-[11%] bottom-4 h-[128px] w-[92px] sm:bottom-5 sm:h-[146px] sm:w-[104px] lg:left-[10%] lg:bottom-6 lg:h-[176px] lg:w-[120px] xl:h-[192px] xl:w-[132px]" />
-              <BottleVisual className="left-1/2 bottom-4 h-[164px] w-[112px] -translate-x-1/2 sm:bottom-5 sm:h-[188px] sm:w-[124px] lg:bottom-6 lg:h-[228px] lg:w-[148px] xl:h-[250px] xl:w-[162px]" featured />
-              <BottleVisual className="right-[11%] bottom-4 h-[138px] w-[94px] sm:bottom-5 sm:h-[158px] sm:w-[106px] lg:right-[10%] lg:bottom-6 lg:h-[188px] lg:w-[122px] xl:h-[206px] xl:w-[134px]" />
+            <div className="relative min-h-[184px] overflow-hidden rounded-[1.1rem] border border-white/8 bg-[radial-gradient(circle_at_50%_20%,rgba(216,192,122,0.18),transparent_38%),linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] sm:min-h-[208px] lg:min-h-[248px] xl:min-h-[270px]">
+              <BottleVisual className="left-[12%] bottom-3.5 h-[116px] w-[84px] sm:bottom-4 sm:h-[134px] sm:w-[96px] lg:left-[13%] lg:bottom-5 lg:h-[154px] lg:w-[108px] xl:h-[170px] xl:w-[118px]" />
+              <BottleVisual className="left-1/2 bottom-3.5 h-[148px] w-[102px] -translate-x-1/2 sm:bottom-4 sm:h-[170px] sm:w-[114px] lg:bottom-5 lg:h-[198px] lg:w-[132px] xl:h-[218px] xl:w-[144px]" featured />
+              <BottleVisual className="right-[12%] bottom-3.5 h-[124px] w-[86px] sm:bottom-4 sm:h-[144px] sm:w-[98px] lg:right-[13%] lg:bottom-5 lg:h-[166px] lg:w-[110px] xl:h-[184px] xl:w-[122px]" />
             </div>
 
-            <div className="pt-3 text-center sm:pt-4">
-              <h2 className="font-display text-[1.7rem] leading-[1.02] text-[var(--gold-soft)] sm:text-[1.9rem] md:text-[2.1rem]">
+            <div className="pt-3 text-center sm:pt-3.5">
+              <h2 className="font-display text-[1.62rem] leading-[1.02] text-[var(--gold-soft)] sm:text-[1.82rem] md:text-[1.98rem]">
                 Hovaluxe Signature Collection
               </h2>
-              <p className="mt-1.5 text-[13px] leading-6 text-[var(--text-secondary)] sm:text-sm sm:leading-6">
+              <p className="mt-1.5 text-[12px] leading-5.5 text-[var(--text-secondary)] sm:text-[13px] sm:leading-6">
                 Elegant scent storytelling with a cleaner, product-first storefront layout.
               </p>
             </div>

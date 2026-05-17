@@ -12,14 +12,14 @@ export function HeroSection({
       <div className="pointer-events-none absolute -left-20 -top-24 h-[320px] w-[320px] rounded-full bg-[radial-gradient(circle,rgba(216,192,122,0.14),transparent_60%)] blur-[80px] sm:h-[380px] sm:w-[380px]" />
       <div className="pointer-events-none absolute -bottom-24 -right-20 h-[320px] w-[320px] rounded-full bg-[radial-gradient(circle,rgba(37,211,102,0.08),transparent_60%)] blur-[80px] sm:h-[380px] sm:w-[380px]" />
 
-      <div className="relative mx-auto max-w-7xl px-4 py-10 md:px-6 md:py-12 lg:px-8 lg:py-14">
-        <div className="grid items-center gap-6 lg:grid-cols-[1.06fr_0.94fr] lg:gap-8">
+      <div className="relative mx-auto max-w-7xl px-4 py-8 md:px-6 md:py-10 lg:px-8 lg:py-12">
+        <div className="grid items-center gap-5 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] lg:gap-10">
           <div className="text-center lg:text-left">
             <p className="eyebrow inline-flex justify-center lg:justify-start">{notice}</p>
             <p className="mt-2 text-[10px] uppercase tracking-[0.24em] text-[var(--text-secondary)] sm:text-xs sm:tracking-[0.3em]">
               {brand.name}
             </p>
-            <h1 className="mx-auto mt-3 max-w-[12ch] font-display text-[clamp(2rem,8vw,4.25rem)] leading-[0.96] text-[var(--text-primary)] lg:mx-0 lg:max-w-[10ch]">
+            <h1 className="mx-auto mt-3 max-w-none font-display text-[clamp(1.85rem,7vw,4.1rem)] leading-[0.92] tracking-[-0.015em] text-[var(--text-primary)] lg:mx-0">
               <span className="block">Luxury scents</span>
               <span className="block">for body, home</span>
               <span className="block">and daily confidence.</span>
@@ -55,7 +55,7 @@ export function HeroSection({
             </div>
           </div>
 
-          <div className="mx-auto w-full max-w-[470px] luxe-panel rounded-[1.35rem] p-3.5 md:p-4.5 lg:mx-0 lg:max-w-[500px] lg:rounded-[1.55rem] lg:p-5">
+          <div className="mx-auto w-full max-w-[470px] luxe-panel rounded-[1.35rem] p-3.5 md:max-w-[560px] md:p-4.5 lg:mx-0 lg:max-w-none lg:rounded-[1.55rem] lg:p-5">
             <div className="mb-3 flex items-center justify-between gap-3">
               <span className="text-[11px] text-[var(--text-muted)] sm:text-xs">Featured store preview</span>
               <span className="inline-flex items-center gap-2 rounded-full border border-[var(--accent-green)]/30 bg-[var(--accent-green)]/10 px-2.5 py-1 text-[10px] text-[var(--accent-green)] sm:px-3 sm:text-[11px]">
@@ -64,10 +64,10 @@ export function HeroSection({
               </span>
             </div>
 
-            <div className="relative min-h-[200px] overflow-hidden rounded-[1.15rem] border border-white/8 bg-[radial-gradient(circle_at_50%_20%,rgba(216,192,122,0.18),transparent_38%),linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] sm:min-h-[228px] lg:min-h-[240px]">
-              <BottleVisual className="left-[11%] bottom-4 h-[128px] w-[92px] sm:bottom-5 sm:h-[146px] sm:w-[104px]" />
-              <BottleVisual className="left-1/2 bottom-4 h-[164px] w-[112px] -translate-x-1/2 sm:bottom-5 sm:h-[188px] sm:w-[124px]" featured />
-              <BottleVisual className="right-[11%] bottom-4 h-[138px] w-[94px] sm:bottom-5 sm:h-[158px] sm:w-[106px]" />
+            <div className="relative min-h-[200px] overflow-hidden rounded-[1.15rem] border border-white/8 bg-[radial-gradient(circle_at_50%_20%,rgba(216,192,122,0.18),transparent_38%),linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] sm:min-h-[228px] lg:min-h-[300px] xl:min-h-[320px]">
+              <BottleVisual className="left-[11%] bottom-4 h-[128px] w-[92px] sm:bottom-5 sm:h-[146px] sm:w-[104px] lg:left-[10%] lg:bottom-6 lg:h-[176px] lg:w-[120px] xl:h-[192px] xl:w-[132px]" />
+              <BottleVisual className="left-1/2 bottom-4 h-[164px] w-[112px] -translate-x-1/2 sm:bottom-5 sm:h-[188px] sm:w-[124px] lg:bottom-6 lg:h-[228px] lg:w-[148px] xl:h-[250px] xl:w-[162px]" featured />
+              <BottleVisual className="right-[11%] bottom-4 h-[138px] w-[94px] sm:bottom-5 sm:h-[158px] sm:w-[106px] lg:right-[10%] lg:bottom-6 lg:h-[188px] lg:w-[122px] xl:h-[206px] xl:w-[134px]" />
             </div>
 
             <div className="pt-3 text-center sm:pt-4">

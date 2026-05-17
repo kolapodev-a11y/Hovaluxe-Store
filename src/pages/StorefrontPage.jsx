@@ -460,7 +460,7 @@ export function StorefrontPage() {
               eyebrow="Featured"
               title="Featured collection"
               description="A clean product-first display. Tap any item to open its full details page."
-              align="left"
+              align="center"
             />
 
             <div className="relative">
@@ -488,7 +488,7 @@ export function StorefrontPage() {
                   </div>
                 ))}
               </div>
-              <p className="mt-3 text-xs text-[var(--text-muted)]">← Scroll left or right to browse the featured collection →</p>
+              <p className="mx-auto mt-3 max-w-2xl text-center text-xs text-[var(--text-muted)]">← Scroll left or right to browse the featured collection →</p>
             </div>
           </section>
         ) : null}

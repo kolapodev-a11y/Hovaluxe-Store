@@ -55,7 +55,7 @@ export function HeroSection({
             </div>
           </div>
 
-          <div className="mx-auto w-full max-w-[470px] luxe-panel rounded-[1.3rem] p-3 md:max-w-[540px] md:p-4 lg:mx-0 lg:max-w-full lg:rounded-[1.5rem] lg:p-4.5">
+          <div className="mx-auto w-full max-w-none luxe-panel rounded-[1.3rem] p-3 md:p-4 lg:mx-0 lg:w-full lg:rounded-[1.5rem] lg:p-4.5">
             <div className="mb-3 flex items-center justify-between gap-3">
               <span className="text-[11px] text-[var(--text-muted)] sm:text-xs">Featured store preview</span>
               <span className="inline-flex items-center gap-2 rounded-full border border-[var(--accent-green)]/30 bg-[var(--accent-green)]/10 px-2.5 py-1 text-[10px] text-[var(--accent-green)] sm:px-3 sm:text-[11px]">

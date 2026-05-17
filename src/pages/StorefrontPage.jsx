@@ -38,27 +38,27 @@ const fallbackConfig = {
 const categoryCards = [
   {
     title: 'Perfume',
-    text: 'Long-lasting signature scents for daily wear and special moments.',
+    text: 'Long-lasting signature scents for everyday wear.',
     icon: Gem,
   },
   {
     title: 'Body Spray',
-    text: 'Fresh and expressive sprays with light but noticeable projection.',
+    text: 'Fresh, expressive sprays with noticeable projection.',
     icon: Wind,
   },
   {
     title: 'Roll Ons',
-    text: 'Compact fragrance oils and portable daily touch-up essentials.',
+    text: 'Portable fragrance oils for quick daily touch-ups.',
     icon: Droplets,
   },
   {
     title: 'Diffusers',
-    text: 'Elegant room fragrance pieces for homes, offices, and gift sets.',
+    text: 'Room fragrance pieces for homes, offices, and gifts.',
     icon: Flame,
   },
   {
     title: 'Humidifiers',
-    text: 'Functional scent-tech for soft ambience and cleaner aromatic spaces.',
+    text: 'Functional scent-tech for soft ambience and cleaner spaces.',
     icon: Cloud,
   },
 ];
@@ -424,11 +424,11 @@ export function StorefrontPage() {
 
       <main>
         {/* CATEGORIES */}
-        <section className="mx-auto max-w-7xl px-4 py-16 md:px-6 lg:px-8">
+        <section className="mx-auto max-w-7xl px-4 py-12 md:px-6 md:py-14 lg:px-8">
           <SectionTitle
             eyebrow="Categories"
             title="Curated scent essentials"
-            description="Explore the product families that shape the Hovaluxe store experience."
+            description="Explore the product families behind the Hovaluxe collection."
             align="center"
           />
           <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
@@ -437,16 +437,16 @@ export function StorefrontPage() {
                 key={title}
                 type="button"
                 onClick={() => handleCatalogBrowse({ category: title })}
-                className="luxe-panel w-full rounded-[1.35rem] p-4 text-center transition hover:-translate-y-1 hover:border-[var(--gold)]/30 sm:p-[1.125rem]"
+                className="luxe-panel w-full rounded-[1.2rem] p-3.5 text-center transition hover:-translate-y-0.5 hover:border-[var(--gold)]/30 sm:p-4"
               >
-                <span className="mx-auto inline-flex h-11 w-11 items-center justify-center rounded-[0.9rem] border border-[var(--gold)]/20 bg-[linear-gradient(135deg,rgba(216,192,122,0.18),rgba(216,192,122,0.05))] text-[var(--gold-soft)] sm:h-12 sm:w-12">
-                  <Icon size={18} />
+                <span className="mx-auto inline-flex h-10 w-10 items-center justify-center rounded-[0.85rem] border border-[var(--gold)]/20 bg-[linear-gradient(135deg,rgba(216,192,122,0.18),rgba(216,192,122,0.05))] text-[var(--gold-soft)] sm:h-11 sm:w-11">
+                  <Icon size={17} />
                 </span>
-                <h3 className="mt-3 font-display text-xl leading-tight text-[var(--gold-soft)] sm:text-2xl">{title}</h3>
-                <p className="mt-2 text-xs leading-6 text-[var(--text-secondary)] sm:text-sm sm:leading-6">{text}</p>
-                <span className="mt-3 inline-flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-[0.2em] text-[var(--gold-soft)] sm:text-xs">
+                <h3 className="mt-2.5 font-display text-[1.45rem] leading-none text-[var(--gold-soft)] sm:text-[1.7rem]">{title}</h3>
+                <p className="mt-1.5 text-[11px] leading-5 text-[var(--text-secondary)] sm:text-xs sm:leading-5">{text}</p>
+                <span className="mt-2.5 inline-flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--gold-soft)] sm:text-[11px]">
                   Browse
-                  <ArrowRight size={13} />
+                  <ArrowRight size={12} />
                 </span>
               </button>
             ))}
@@ -455,7 +455,7 @@ export function StorefrontPage() {
 
         {/* FEATURED COLLECTION - horizontal scrollable */}
         {featuredProducts.length > 0 ? (
-          <section id="collections" className="mx-auto max-w-7xl px-4 py-10 md:px-6 lg:px-8">
+          <section id="collections" className="mx-auto max-w-7xl px-4 py-8 md:px-6 md:py-10 lg:px-8">
             <SectionTitle
               eyebrow="Featured"
               title="Featured collection"
@@ -494,7 +494,7 @@ export function StorefrontPage() {
         ) : null}
 
         {/* SHOP - full catalog */}
-        <section id={catalogSectionId} className="mx-auto max-w-7xl px-4 py-14 md:px-6 lg:px-8">
+        <section id={catalogSectionId} className="mx-auto max-w-7xl px-4 py-12 md:px-6 md:py-13 lg:px-8">
           <div className="text-center">
             <SectionTitle
               eyebrow="Shop"
@@ -512,7 +512,7 @@ export function StorefrontPage() {
             </div>
           </div>
 
-          <div className="mt-6">
+          <div className="mt-5">
             <CategoryStrip
               activeCategory={activeCategory}
               onChangeCategory={setActiveCategory}

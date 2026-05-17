@@ -38,27 +38,27 @@ const fallbackConfig = {
 const categoryCards = [
   {
     title: 'Perfume',
-    text: 'Signature scents for everyday wear.',
+    text: 'Long-lasting signature scents for everyday wear.',
     icon: Gem,
   },
   {
     title: 'Body Spray',
-    text: 'Fresh sprays with noticeable projection.',
+    text: 'Fresh, expressive sprays with noticeable projection.',
     icon: Wind,
   },
   {
     title: 'Roll Ons',
-    text: 'Portable oils for quick touch-ups.',
+    text: 'Portable fragrance oils for quick daily touch-ups.',
     icon: Droplets,
   },
   {
     title: 'Diffusers',
-    text: 'Home and office fragrance pieces.',
+    text: 'Room fragrance pieces for homes, offices, and gifts.',
     icon: Flame,
   },
   {
     title: 'Humidifiers',
-    text: 'Soft ambience and cleaner spaces.',
+    text: 'Functional scent-tech for soft ambience and cleaner spaces.',
     icon: Cloud,
   },
 ];
@@ -424,44 +424,32 @@ export function StorefrontPage() {
 
       <main>
         {/* CATEGORIES */}
-        <section className="mx-auto max-w-7xl px-4 py-10 md:px-6 md:py-11 lg:px-8">
+        <section className="mx-auto max-w-7xl px-4 py-12 md:px-6 md:py-14 lg:px-8">
           <SectionTitle
             eyebrow="Categories"
             title="Curated scent essentials"
-            description="Browse by format, then jump straight into products."
+            description="Explore the product families behind the Hovaluxe collection."
             align="center"
           />
           <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
-            {categoryCards.map(({ title, text, icon: Icon }, index) => {
-              const isLastCard = index === categoryCards.length - 1;
-
-              return (
-                <button
-                  key={title}
-                  type="button"
-                  onClick={() => handleCatalogBrowse({ category: title })}
-                  className={`luxe-panel flex h-full w-full rounded-[1.1rem] p-3 transition hover:-translate-y-0.5 hover:border-[var(--gold)]/30 sm:p-3.5 ${isLastCard ? 'col-span-2 md:col-span-1' : ''}`}
-                >
-                  <div
-                    className={`flex h-full w-full ${isLastCard ? 'items-center gap-3 text-left md:flex-col md:items-center md:gap-0 md:text-center' : 'flex-col items-center text-center'}`}
-                  >
-                    <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-[0.85rem] border border-[var(--gold)]/20 bg-[linear-gradient(135deg,rgba(216,192,122,0.18),rgba(216,192,122,0.05))] text-[var(--gold-soft)] sm:h-10 sm:w-10">
-                      <Icon size={16} />
-                    </span>
-                    <div className={`w-full ${isLastCard ? 'flex-1 md:mt-0' : ''}`}>
-                      <h3 className={`font-display leading-none text-[var(--gold-soft)] ${isLastCard ? 'text-[1.3rem] sm:text-[1.45rem] md:mt-2.5' : 'mt-2.5 text-[1.22rem] sm:text-[1.45rem]'}`}>
-                        {title}
-                      </h3>
-                      <p className="mt-1.5 text-[11px] leading-5 text-[var(--text-secondary)] sm:text-xs sm:leading-5">{text}</p>
-                      <span className={`mt-2 inline-flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--gold-soft)] sm:text-[11px] ${isLastCard ? 'justify-start md:justify-center' : ''}`}>
-                        Browse
-                        <ArrowRight size={12} />
-                      </span>
-                    </div>
-                  </div>
-                </button>
-              );
-            })}
+            {categoryCards.map(({ title, text, icon: Icon }) => (
+              <button
+                key={title}
+                type="button"
+                onClick={() => handleCatalogBrowse({ category: title })}
+                className="luxe-panel w-full rounded-[1.2rem] p-3.5 text-center transition hover:-translate-y-0.5 hover:border-[var(--gold)]/30 sm:p-4"
+              >
+                <span className="mx-auto inline-flex h-10 w-10 items-center justify-center rounded-[0.85rem] border border-[var(--gold)]/20 bg-[linear-gradient(135deg,rgba(216,192,122,0.18),rgba(216,192,122,0.05))] text-[var(--gold-soft)] sm:h-11 sm:w-11">
+                  <Icon size={17} />
+                </span>
+                <h3 className="mt-2.5 font-display text-[1.45rem] leading-none text-[var(--gold-soft)] sm:text-[1.7rem]">{title}</h3>
+                <p className="mt-1.5 text-[11px] leading-5 text-[var(--text-secondary)] sm:text-xs sm:leading-5">{text}</p>
+                <span className="mt-2.5 inline-flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--gold-soft)] sm:text-[11px]">
+                  Browse
+                  <ArrowRight size={12} />
+                </span>
+              </button>
+            ))}
           </div>
         </section>
 

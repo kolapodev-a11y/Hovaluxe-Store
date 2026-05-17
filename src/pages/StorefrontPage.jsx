@@ -424,27 +424,27 @@ export function StorefrontPage() {
 
       <main>
         {/* CATEGORIES */}
-        <section className="mx-auto max-w-7xl px-4 py-12 md:px-6 md:py-14 lg:px-8">
+        <section className="mx-auto max-w-7xl px-4 py-10 md:px-6 md:py-12 lg:px-8">
           <SectionTitle
             eyebrow="Categories"
             title="Curated scent essentials"
             description="Explore the product families behind the Hovaluxe collection."
             align="center"
           />
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4 xl:grid-cols-5">
             {categoryCards.map(({ title, text, icon: Icon }) => (
               <button
                 key={title}
                 type="button"
                 onClick={() => handleCatalogBrowse({ category: title })}
-                className="luxe-panel w-full rounded-[1.2rem] p-3.5 text-center transition hover:-translate-y-0.5 hover:border-[var(--gold)]/30 sm:p-4"
+                className="luxe-panel w-full rounded-[1.15rem] p-3 text-center transition hover:-translate-y-0.5 hover:border-[var(--gold)]/30 sm:p-3.5"
               >
-                <span className="mx-auto inline-flex h-10 w-10 items-center justify-center rounded-[0.85rem] border border-[var(--gold)]/20 bg-[linear-gradient(135deg,rgba(216,192,122,0.18),rgba(216,192,122,0.05))] text-[var(--gold-soft)] sm:h-11 sm:w-11">
-                  <Icon size={17} />
+                <span className="mx-auto inline-flex h-9 w-9 items-center justify-center rounded-[0.8rem] border border-[var(--gold)]/20 bg-[linear-gradient(135deg,rgba(216,192,122,0.18),rgba(216,192,122,0.05))] text-[var(--gold-soft)] sm:h-10 sm:w-10">
+                  <Icon size={16} />
                 </span>
-                <h3 className="mt-2.5 font-display text-[1.45rem] leading-none text-[var(--gold-soft)] sm:text-[1.7rem]">{title}</h3>
-                <p className="mt-1.5 text-[11px] leading-5 text-[var(--text-secondary)] sm:text-xs sm:leading-5">{text}</p>
-                <span className="mt-2.5 inline-flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--gold-soft)] sm:text-[11px]">
+                <h3 className="mt-2 font-display text-[1.28rem] leading-none text-[var(--gold-soft)] sm:text-[1.5rem]">{title}</h3>
+                <p className="mt-1 text-[10.5px] leading-4.5 text-[var(--text-secondary)] sm:text-[11px] sm:leading-5">{text}</p>
+                <span className="mt-2 inline-flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--gold-soft)] sm:text-[11px]">
                   Browse
                   <ArrowRight size={12} />
                 </span>

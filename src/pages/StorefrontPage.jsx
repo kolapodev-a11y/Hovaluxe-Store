@@ -24,6 +24,14 @@ import { CartDrawer } from '../components/CartDrawer';
 import { CheckoutModal } from '../components/CheckoutModal';
 import { formatDateTime, formatPrice, titleCase } from '../utils/format';
 import { api } from '../lib/api';
+import {
+  hasFreshConfigCache,
+  hasFreshProductsCache,
+  readCachedConfig,
+  readCachedProducts,
+  writeCachedConfig,
+  writeCachedProducts,
+} from '../lib/storefrontCache';
 import { useAuth } from '../context/AuthContext';
 
 const fallbackConfig = {
@@ -166,35 +174,57 @@ export function StorefrontPage() {
   useEffect(() => {
     let active = true;
 
+    const cachedConfig = readCachedConfig();
+    const cachedProducts = readCachedProducts().map((product) => normalizeProduct(product));
+    const hasFreshConfig = hasFreshConfigCache();
+    const hasFreshProducts = hasFreshProductsCache();
+
+    if (cachedConfig) {
+      setConfig({ ...fallbackConfig, ...cachedConfig });
+    }
+
+    if (cachedProducts.length) {
+      setProducts(cachedProducts);
+    }
+
+    setProductsLoading(!hasFreshProducts && !cachedProducts.length);
+
     async function loadStore() {
-      setProductsLoading(true);
       setCatalogError('');
 
-      const configRequest = api
-        .getPublicConfig()
-        .then((configResponse) => {
-          if (!active) return;
-          setConfig({ ...fallbackConfig, ...(configResponse.data || {}) });
-        })
-        .catch(() => {
-          if (!active) return;
-          setConfig(fallbackConfig);
-        });
+      const configRequest = hasFreshConfig
+        ? Promise.resolve()
+        : api
+          .getPublicConfig()
+          .then((configResponse) => {
+            if (!active) return;
+            const nextConfig = { ...fallbackConfig, ...(configResponse.data || {}) };
+            setConfig(nextConfig);
+            writeCachedConfig(configResponse.data || {});
+          })
+          .catch(() => {
+            if (!active || cachedConfig) return;
+            setConfig(fallbackConfig);
+          });
 
-      const productsRequest = api
-        .getProducts()
-        .then((productsResponse) => {
-          if (!active) return;
-          setProducts((productsResponse.data || []).map((product) => normalizeProduct(product)));
-          setCatalogError('');
-        })
-        .catch((loadError) => {
-          if (!active) return;
-          setCatalogError(loadError.message || 'Unable to load products right now.');
-        })
-        .finally(() => {
-          if (active) setProductsLoading(false);
-        });
+      const productsRequest = hasFreshProducts
+        ? Promise.resolve()
+        : api
+          .getProducts()
+          .then((productsResponse) => {
+            if (!active) return;
+            const nextProducts = (productsResponse.data || []).map((product) => normalizeProduct(product));
+            setProducts(nextProducts);
+            writeCachedProducts(nextProducts);
+            setCatalogError('');
+          })
+          .catch((loadError) => {
+            if (!active || cachedProducts.length) return;
+            setCatalogError(loadError.message || 'Unable to load products right now.');
+          })
+          .finally(() => {
+            if (active) setProductsLoading(false);
+          });
 
       await Promise.allSettled([configRequest, productsRequest]);
     }
@@ -459,7 +489,6 @@ export function StorefrontPage() {
             <SectionTitle
               eyebrow="Featured"
               title="Featured collection"
-              description="A clean product-first display. Tap any item to open its full details page."
               align="center"
             />
 
@@ -469,7 +498,7 @@ export function StorefrontPage() {
                 style={{ scrollSnapType: 'x mandatory' }}
                 data-store-scroll-track="collections"
               >
-                {featuredProducts.map((product) => (
+                {featuredProducts.map((product, index) => (
                   <div
                     key={product.id}
                     className="w-[240px] shrink-0 sm:w-[250px] lg:w-[260px]"
@@ -478,6 +507,7 @@ export function StorefrontPage() {
                     <ProductCard
                       product={product}
                       compact
+                      priority={index < 2}
                       linkState={{
                         fromPath: '/',
                         scrollTo: 'collections',
@@ -499,7 +529,6 @@ export function StorefrontPage() {
             <SectionTitle
               eyebrow="Shop"
               title="Shop the full catalog"
-              description="Only product image, name, and price appear here first. Click any product to view its full details and larger images."
               align="center"
             />
             <div className="mx-auto w-full max-w-md">
@@ -529,10 +558,11 @@ export function StorefrontPage() {
             </div>
           ) : filteredProducts.length ? (
             <div className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
-              {filteredProducts.map((product) => (
+              {filteredProducts.map((product, index) => (
                 <ProductCard
                   key={product.id}
                   product={product}
+                  priority={index < 4 && !search && activeCategory === 'All'}
                   linkState={{
                     fromPath: '/',
                     scrollTo: catalogSectionId,

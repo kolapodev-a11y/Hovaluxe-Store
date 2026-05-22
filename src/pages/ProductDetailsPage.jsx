@@ -8,6 +8,11 @@ import { useWishlist } from '../context/WishlistContext';
 import { buildProductPath, getProductImages, normalizeProduct, slugifyProductName } from '../data/store';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { api } from '../lib/api';
+import {
+  hasFreshProductsCache,
+  readCachedProducts,
+  writeCachedProducts,
+} from '../lib/storefrontCache';
 import { formatPrice, titleCase } from '../utils/format';
 
 const STOREFRONT_RETURN_STATE_KEY = 'hovaluxe_storefront_return';
@@ -54,24 +59,38 @@ export function ProductDetailsPage() {
   useEffect(() => {
     let active = true;
 
+    const matchProduct = (catalog) => catalog.find((entry) => {
+      const entryId = String(entry.id || entry._id || '');
+      const entrySlug = slugifyProductName(entry.name);
+
+      if (productId) {
+        return entryId === productId || entrySlug === productSlug;
+      }
+
+      return entrySlug === productSlug;
+    });
+
+    const cachedProducts = readCachedProducts().map((entry) => normalizeProduct(entry));
+    const cachedMatch = matchProduct(cachedProducts);
+    const hasFreshCatalog = hasFreshProductsCache();
+
+    if (cachedMatch) {
+      setProduct(cachedMatch);
+      setError('');
+      setLoading(false);
+    } else {
+      setLoading(true);
+    }
+
     async function loadProduct() {
       try {
-        setLoading(true);
         setError('');
         const response = await api.getProducts();
         if (!active) return;
 
         const normalizedProducts = (response.data || []).map((entry) => normalizeProduct(entry));
-        const matchedProduct = normalizedProducts.find((entry) => {
-          const entryId = String(entry.id || entry._id || '');
-          const entrySlug = slugifyProductName(entry.name);
-
-          if (productId) {
-            return entryId === productId || entrySlug === productSlug;
-          }
-
-          return entrySlug === productSlug;
-        });
+        writeCachedProducts(normalizedProducts);
+        const matchedProduct = matchProduct(normalizedProducts);
 
         if (!matchedProduct) {
           setProduct(null);
@@ -81,14 +100,16 @@ export function ProductDetailsPage() {
 
         setProduct(matchedProduct);
       } catch (loadError) {
-        if (!active) return;
+        if (!active || cachedMatch) return;
         setError(loadError.message || 'Unable to load the selected product right now.');
       } finally {
         if (active) setLoading(false);
       }
     }
 
-    loadProduct();
+    if (!hasFreshCatalog || !cachedMatch) {
+      loadProduct();
+    }
 
     return () => {
       active = false;

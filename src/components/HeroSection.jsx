@@ -74,9 +74,6 @@ export function HeroSection({
               <h2 className="font-display text-[1.62rem] leading-[1.02] text-[var(--gold-soft)] sm:text-[1.82rem] md:text-[1.98rem]">
                 Hovaluxe Signature Collection
               </h2>
-              <p className="mt-1.5 text-[12px] leading-5.5 text-[var(--text-secondary)] sm:text-[13px] sm:leading-6">
-                Elegant scent storytelling with a cleaner, product-first storefront layout.
-              </p>
             </div>
           </div>
         </div>

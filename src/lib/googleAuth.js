@@ -1,4 +1,4 @@
-export const GOOGLE_AUTH_STORAGE_KEY = 'hovaluxe_google_admin';
+export const GOOGLE_AUTH_STORAGE_KEY = 'kunleluxe_google_admin';
 export const ADMIN_EMAIL = (import.meta.env.VITE_ADMIN_EMAIL || '').trim().toLowerCase();
 export const GOOGLE_CLIENT_ID = (
   import.meta.env.VITE_GOOGLE_CLIENT_ID || import.meta.env.VITE_GOGGLE_CLIENT_ID || ''

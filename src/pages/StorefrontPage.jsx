@@ -24,14 +24,6 @@ import { CartDrawer } from '../components/CartDrawer';
 import { CheckoutModal } from '../components/CheckoutModal';
 import { formatDateTime, formatPrice, titleCase } from '../utils/format';
 import { api } from '../lib/api';
-import {
-  hasFreshConfigCache,
-  hasFreshProductsCache,
-  readCachedConfig,
-  readCachedProducts,
-  writeCachedConfig,
-  writeCachedProducts,
-} from '../lib/storefrontCache';
 import { useAuth } from '../context/AuthContext';
 
 const fallbackConfig = {
@@ -46,33 +38,33 @@ const fallbackConfig = {
 const categoryCards = [
   {
     title: 'Perfume',
-    text: 'Long-lasting signature scents for everyday wear.',
+    text: 'Signature scents for daily wear and occasion dressing.',
     icon: Gem,
   },
   {
     title: 'Body Spray',
-    text: 'Fresh, expressive sprays with noticeable projection.',
+    text: 'Fresh sprays with easy daily projection.',
     icon: Wind,
   },
   {
     title: 'Roll Ons',
-    text: 'Portable fragrance oils for quick daily touch-ups.',
+    text: 'Portable fragrance oils for quick touch-ups.',
     icon: Droplets,
   },
   {
     title: 'Diffusers',
-    text: 'Room fragrance pieces for homes, offices, and gifts.',
+    text: 'Refined home scents for calm, polished spaces.',
     icon: Flame,
   },
   {
     title: 'Humidifiers',
-    text: 'Functional scent-tech for soft ambience and cleaner spaces.',
+    text: 'Aroma-ready humidifiers for soft ambience.',
     icon: Cloud,
   },
 ];
 
 const catalogSectionId = 'catalog';
-const STOREFRONT_RETURN_STATE_KEY = 'hovaluxe_storefront_return';
+const STOREFRONT_RETURN_STATE_KEY = 'kunleluxe_storefront_return';
 
 const normalizePhoneNumber = (value = '') => String(value || '').replace(/[^\d]/g, '');
 
@@ -92,7 +84,7 @@ const buildWhatsAppOrderLink = ({ phoneNumber, customerName, customerPhone, cust
     .join('\n');
 
   const message = [
-    'Hello Hovaluxe, I would like to place an order.',
+    'Hello Kunleluxe, I would like to place an order.',
     '',
     'Customer details',
     `Name: ${customerName}`,
@@ -160,7 +152,7 @@ export function StorefrontPage() {
   const { token, user, isAuthenticated } = useAuth();
   const [config, setConfig] = useState(fallbackConfig);
   const [products, setProducts] = useState([]);
-  const [cart, setCart] = useLocalStorage('hovaluxe_cart', []);
+  const [cart, setCart] = useLocalStorage('kunleluxe_cart', []);
 
   const [productsLoading, setProductsLoading] = useState(true);
   const [catalogError, setCatalogError] = useState('');
@@ -174,57 +166,35 @@ export function StorefrontPage() {
   useEffect(() => {
     let active = true;
 
-    const cachedConfig = readCachedConfig();
-    const cachedProducts = readCachedProducts().map((product) => normalizeProduct(product));
-    const hasFreshConfig = hasFreshConfigCache();
-    const hasFreshProducts = hasFreshProductsCache();
-
-    if (cachedConfig) {
-      setConfig({ ...fallbackConfig, ...cachedConfig });
-    }
-
-    if (cachedProducts.length) {
-      setProducts(cachedProducts);
-    }
-
-    setProductsLoading(!hasFreshProducts && !cachedProducts.length);
-
     async function loadStore() {
+      setProductsLoading(true);
       setCatalogError('');
 
-      const configRequest = hasFreshConfig
-        ? Promise.resolve()
-        : api
-          .getPublicConfig()
-          .then((configResponse) => {
-            if (!active) return;
-            const nextConfig = { ...fallbackConfig, ...(configResponse.data || {}) };
-            setConfig(nextConfig);
-            writeCachedConfig(configResponse.data || {});
-          })
-          .catch(() => {
-            if (!active || cachedConfig) return;
-            setConfig(fallbackConfig);
-          });
+      const configRequest = api
+        .getPublicConfig()
+        .then((configResponse) => {
+          if (!active) return;
+          setConfig({ ...fallbackConfig, ...(configResponse.data || {}) });
+        })
+        .catch(() => {
+          if (!active) return;
+          setConfig(fallbackConfig);
+        });
 
-      const productsRequest = hasFreshProducts
-        ? Promise.resolve()
-        : api
-          .getProducts()
-          .then((productsResponse) => {
-            if (!active) return;
-            const nextProducts = (productsResponse.data || []).map((product) => normalizeProduct(product));
-            setProducts(nextProducts);
-            writeCachedProducts(nextProducts);
-            setCatalogError('');
-          })
-          .catch((loadError) => {
-            if (!active || cachedProducts.length) return;
-            setCatalogError(loadError.message || 'Unable to load products right now.');
-          })
-          .finally(() => {
-            if (active) setProductsLoading(false);
-          });
+      const productsRequest = api
+        .getProducts()
+        .then((productsResponse) => {
+          if (!active) return;
+          setProducts((productsResponse.data || []).map((product) => normalizeProduct(product)));
+          setCatalogError('');
+        })
+        .catch((loadError) => {
+          if (!active) return;
+          setCatalogError(loadError.message || 'Unable to load products right now.');
+        })
+        .finally(() => {
+          if (active) setProductsLoading(false);
+        });
 
       await Promise.allSettled([configRequest, productsRequest]);
     }
@@ -441,7 +411,6 @@ export function StorefrontPage() {
         notice={config.heroNotice}
         cartCount={cartCount}
         onCartOpen={() => setCartOpen(true)}
-        onShopCollection={() => handleCatalogBrowse({ category: 'All' })}
       />
 
       {notice ? (
@@ -458,25 +427,25 @@ export function StorefrontPage() {
           <SectionTitle
             eyebrow="Categories"
             title="Curated scent essentials"
-            description="Explore the product families behind the Hovaluxe collection."
+            description="Quickly jump into the scent category you want to shop."
             align="center"
           />
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4 xl:grid-cols-5">
+          <div className="grid grid-cols-2 gap-2.5 md:grid-cols-3 md:gap-3 xl:grid-cols-5">
             {categoryCards.map(({ title, text, icon: Icon }) => (
               <button
                 key={title}
                 type="button"
                 onClick={() => handleCatalogBrowse({ category: title })}
-                className="luxe-panel w-full rounded-[1.15rem] p-3 text-center transition hover:-translate-y-0.5 hover:border-[var(--gold)]/30 sm:p-3.5"
+                className="luxe-panel w-full rounded-[1.2rem] p-3 text-center transition hover:-translate-y-1 hover:border-[var(--gold)]/30 sm:p-4"
               >
-                <span className="mx-auto inline-flex h-9 w-9 items-center justify-center rounded-[0.8rem] border border-[var(--gold)]/20 bg-[linear-gradient(135deg,rgba(216,192,122,0.18),rgba(216,192,122,0.05))] text-[var(--gold-soft)] sm:h-10 sm:w-10">
-                  <Icon size={16} />
+                <span className="mx-auto inline-flex h-10 w-10 items-center justify-center rounded-[0.85rem] border border-[var(--gold)]/20 bg-[linear-gradient(135deg,rgba(216,192,122,0.18),rgba(216,192,122,0.05))] text-[var(--gold-soft)] sm:h-11 sm:w-11">
+                  <Icon size={17} />
                 </span>
-                <h3 className="mt-2 font-display text-[1.28rem] leading-none text-[var(--gold-soft)] sm:text-[1.5rem]">{title}</h3>
-                <p className="mt-1 text-[10.5px] leading-4.5 text-[var(--text-secondary)] sm:text-[11px] sm:leading-5">{text}</p>
-                <span className="mt-2 inline-flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--gold-soft)] sm:text-[11px]">
+                <h3 className="mt-2.5 font-display text-lg leading-tight text-[var(--gold-soft)] sm:text-xl">{title}</h3>
+                <p className="mt-1.5 text-[11px] leading-5 text-[var(--text-secondary)] sm:text-xs sm:leading-5">{text}</p>
+                <span className="mt-2.5 inline-flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-[0.2em] text-[var(--gold-soft)] sm:text-[11px]">
                   Browse
-                  <ArrowRight size={12} />
+                  <ArrowRight size={13} />
                 </span>
               </button>
             ))}
@@ -489,16 +458,17 @@ export function StorefrontPage() {
             <SectionTitle
               eyebrow="Featured"
               title="Featured collection"
-              align="center"
+              description="A compact product-first row. Tap any item to open its full details page."
+              align="left"
             />
 
             <div className="relative">
               <div
-                className="scrollbar-thin flex gap-5 overflow-x-auto pb-4"
+                className="scrollbar-thin flex gap-4 overflow-x-auto pb-4"
                 style={{ scrollSnapType: 'x mandatory' }}
                 data-store-scroll-track="collections"
               >
-                {featuredProducts.map((product, index) => (
+                {featuredProducts.map((product) => (
                   <div
                     key={product.id}
                     className="w-[240px] shrink-0 sm:w-[250px] lg:w-[260px]"
@@ -507,7 +477,6 @@ export function StorefrontPage() {
                     <ProductCard
                       product={product}
                       compact
-                      priority={index < 2}
                       linkState={{
                         fromPath: '/',
                         scrollTo: 'collections',
@@ -518,17 +487,18 @@ export function StorefrontPage() {
                   </div>
                 ))}
               </div>
-              <p className="mx-auto mt-3 max-w-2xl text-center text-xs text-[var(--text-muted)]">← Scroll left or right to browse the featured collection →</p>
+              <p className="mt-3 text-xs text-[var(--text-muted)]">← Scroll left or right to browse the featured collection →</p>
             </div>
           </section>
         ) : null}
 
         {/* SHOP - full catalog */}
-        <section id={catalogSectionId} className="mx-auto max-w-7xl px-4 py-12 md:px-6 md:py-13 lg:px-8">
+        <section id={catalogSectionId} className="mx-auto max-w-7xl px-4 py-12 md:px-6 lg:px-8">
           <div className="text-center">
             <SectionTitle
               eyebrow="Shop"
               title="Shop the full catalog"
+              description="Browse the full catalog with product image, name, and price up front before opening details."
               align="center"
             />
             <div className="mx-auto w-full max-w-md">
@@ -558,11 +528,10 @@ export function StorefrontPage() {
             </div>
           ) : filteredProducts.length ? (
             <div className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
-              {filteredProducts.map((product, index) => (
+              {filteredProducts.map((product) => (
                 <ProductCard
                   key={product.id}
                   product={product}
-                  priority={index < 4 && !search && activeCategory === 'All'}
                   linkState={{
                     fromPath: '/',
                     scrollTo: catalogSectionId,
@@ -591,7 +560,7 @@ export function StorefrontPage() {
           <InfoPanel
             icon={<MessageCircle size={18} />}
             title="WhatsApp assistance"
-            text="Reach the Hovaluxe team directly for product questions, stock availability, or delivery updates."
+            text="Reach the Kunleluxe team directly for product questions, stock availability, or delivery updates."
           />
         </section>
 
@@ -676,13 +645,15 @@ export function StorefrontPage() {
         <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 md:px-6 lg:grid-cols-[1.1fr_0.9fr_0.9fr] lg:px-8">
           <div>
             <div className="inline-flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-[var(--gold)]/25 bg-[linear-gradient(135deg,#181613,#0c0c0d)] text-[var(--gold)] shadow-[0_0_30px_rgba(216,192,122,.16)]">
-                <Gem size={20} />
-              </div>
+              <img
+                src="/kunleluxe-logo.png"
+                alt={`${brand.name} logo`}
+                className="h-12 w-auto rounded-[0.9rem] object-contain"
+              />
               <div>
                 <p className="font-display text-3xl leading-none text-[var(--gold-soft)]">{brand.name}</p>
                 <p className="mt-1 text-[11px] uppercase tracking-[0.3em] text-[var(--text-secondary)]">
-                  Luxury fragrance store
+                  Luxe fragrance store
                 </p>
               </div>
             </div>

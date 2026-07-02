@@ -8,14 +8,9 @@ import { useWishlist } from '../context/WishlistContext';
 import { buildProductPath, getProductImages, normalizeProduct, slugifyProductName } from '../data/store';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { api } from '../lib/api';
-import {
-  hasFreshProductsCache,
-  readCachedProducts,
-  writeCachedProducts,
-} from '../lib/storefrontCache';
 import { formatPrice, titleCase } from '../utils/format';
 
-const STOREFRONT_RETURN_STATE_KEY = 'hovaluxe_storefront_return';
+const STOREFRONT_RETURN_STATE_KEY = 'kunleluxe_storefront_return';
 
 function readStoredStorefrontReturnState() {
   if (typeof window === 'undefined') return null;
@@ -47,7 +42,7 @@ export function ProductDetailsPage() {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   const { isWishlisted, toggleWishlist } = useWishlist();
-  const [cart, setCart] = useLocalStorage('hovaluxe_cart', []);
+  const [cart, setCart] = useLocalStorage('kunleluxe_cart', []);
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -59,38 +54,24 @@ export function ProductDetailsPage() {
   useEffect(() => {
     let active = true;
 
-    const matchProduct = (catalog) => catalog.find((entry) => {
-      const entryId = String(entry.id || entry._id || '');
-      const entrySlug = slugifyProductName(entry.name);
-
-      if (productId) {
-        return entryId === productId || entrySlug === productSlug;
-      }
-
-      return entrySlug === productSlug;
-    });
-
-    const cachedProducts = readCachedProducts().map((entry) => normalizeProduct(entry));
-    const cachedMatch = matchProduct(cachedProducts);
-    const hasFreshCatalog = hasFreshProductsCache();
-
-    if (cachedMatch) {
-      setProduct(cachedMatch);
-      setError('');
-      setLoading(false);
-    } else {
-      setLoading(true);
-    }
-
     async function loadProduct() {
       try {
+        setLoading(true);
         setError('');
         const response = await api.getProducts();
         if (!active) return;
 
         const normalizedProducts = (response.data || []).map((entry) => normalizeProduct(entry));
-        writeCachedProducts(normalizedProducts);
-        const matchedProduct = matchProduct(normalizedProducts);
+        const matchedProduct = normalizedProducts.find((entry) => {
+          const entryId = String(entry.id || entry._id || '');
+          const entrySlug = slugifyProductName(entry.name);
+
+          if (productId) {
+            return entryId === productId || entrySlug === productSlug;
+          }
+
+          return entrySlug === productSlug;
+        });
 
         if (!matchedProduct) {
           setProduct(null);
@@ -100,16 +81,14 @@ export function ProductDetailsPage() {
 
         setProduct(matchedProduct);
       } catch (loadError) {
-        if (!active || cachedMatch) return;
+        if (!active) return;
         setError(loadError.message || 'Unable to load the selected product right now.');
       } finally {
         if (active) setLoading(false);
       }
     }
 
-    if (!hasFreshCatalog || !cachedMatch) {
-      loadProduct();
-    }
+    loadProduct();
 
     return () => {
       active = false;

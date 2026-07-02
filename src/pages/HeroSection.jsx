@@ -68,7 +68,7 @@ export function HeroSection({
 
             <div className="py-5 text-center">
               <h2 className="font-display text-[2rem] text-[var(--gold-soft)] sm:text-3xl md:text-4xl">
-                Hovaluxe Signature Collection
+                Kunleluxe Signature Collection
               </h2>
               <p className="mt-2 text-sm leading-7 text-[var(--text-secondary)] md:text-base">
                 Dark luxury visuals, elegant scent storytelling, and conversion-focused storefront sections.

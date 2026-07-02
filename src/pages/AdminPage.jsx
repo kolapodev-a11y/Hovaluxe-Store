@@ -28,7 +28,7 @@ const initialSummary = {
 };
 
 const initialConfig = {
-  businessName: 'Hovaluxe',
+  businessName: 'Kunleluxe',
   whatsappNumber: '',
   supportEmail: '',
   deliveryFee: 2500,

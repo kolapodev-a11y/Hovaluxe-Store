@@ -10,7 +10,7 @@ import { formatDateTime, formatPrice, titleCase } from '../utils/format';
 export function TransactionHistoryPage() {
   const navigate = useNavigate();
   const { token, user, isAuthenticated } = useAuth();
-  const [cart] = useLocalStorage('hovaluxe_cart', []);
+  const [cart] = useLocalStorage('kunleluxe_cart', []);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');

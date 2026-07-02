@@ -8,7 +8,7 @@ import { useLocalStorage } from '../hooks/useLocalStorage';
 export function WishlistPage() {
   const navigate = useNavigate();
   const { items } = useWishlist();
-  const [cart, setCart] = useLocalStorage('hovaluxe_cart', []);
+  const [cart, setCart] = useLocalStorage('kunleluxe_cart', []);
 
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 

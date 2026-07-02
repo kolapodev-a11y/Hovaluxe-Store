@@ -101,7 +101,7 @@ export function RegisterPage() {
     <div className="min-h-screen bg-[var(--bg)] px-4 py-8 text-[var(--text-primary)] md:px-6 lg:px-8">
       <div className="mx-auto max-w-4xl rounded-[2rem] border border-[var(--line)] bg-[#0c0d0d] p-6 text-center shadow-[0_24px_90px_rgba(0,0,0,.48)] md:p-8">
         <p className="text-xs uppercase tracking-[0.24em] text-[var(--accent-green)]">Create account</p>
-        <h1 className="mt-3 font-display text-4xl text-[var(--text-primary)] md:text-5xl">Join Hovaluxe</h1>
+        <h1 className="mt-3 font-display text-4xl text-[var(--text-primary)] md:text-5xl">Join Kunleluxe</h1>
         <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-[var(--text-secondary)]">
           Choose how you want to register. You can sign up with email and password or continue with Google for a faster account setup.
         </p>

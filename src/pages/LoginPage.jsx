@@ -101,7 +101,7 @@ export function LoginPage() {
   return (
     <AuthShell
       eyebrow="Welcome back"
-      title="Sign in to Hovaluxe"
+      title="Sign in to Kunleluxe"
       description="Choose your preferred sign-in method below. You can continue with email and password or use Google for faster access."
     >
       {resumeCheckout ? (
@@ -111,7 +111,7 @@ export function LoginPage() {
       <OptionGrid>
         <AuthOptionCard
           title="Email"
-          description={emailEnabled ? 'Continue with your Hovaluxe email and password.' : 'Email sign-in is currently unavailable.'}
+          description={emailEnabled ? 'Continue with your Kunleluxe email and password.' : 'Email sign-in is currently unavailable.'}
           active={emailEnabled}
         />
         <AuthOptionCard
@@ -200,7 +200,7 @@ function AuthShell({ eyebrow, title, description, children }) {
       <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[0.95fr_1.05fr]">
         <div className="luxe-panel flex flex-col justify-center rounded-[2rem] p-6 text-center md:p-8">
           <div>
-            <p className="text-xs uppercase tracking-[0.24em] text-[var(--accent-green)]">Hovaluxe account</p>
+            <p className="text-xs uppercase tracking-[0.24em] text-[var(--accent-green)]">Kunleluxe account</p>
             <h1 className="mt-4 font-display text-5xl leading-none text-[var(--gold-soft)] md:text-6xl">
               Fragrance shopping with a polished sign-in flow.
             </h1>

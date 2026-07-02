@@ -34,7 +34,7 @@ export function PaymentCallbackPage() {
   const [state, setState] = useState({ loading: true, error: '', order: null });
 
   useEffect(() => {
-    const savedCart = JSON.parse(localStorage.getItem('hovaluxe_cart') || '[]');
+    const savedCart = JSON.parse(localStorage.getItem('kunleluxe_cart') || '[]');
     setCartCount(savedCart.reduce((sum, item) => sum + (item.quantity || 0), 0));
   }, []);
 
@@ -46,7 +46,7 @@ export function PaymentCallbackPage() {
         const response = await api.verifyFlutterwavePayment(params);
         if (active) {
           setState({ loading: false, error: '', order: response.data });
-          localStorage.removeItem('hovaluxe_cart');
+          localStorage.removeItem('kunleluxe_cart');
           setCartCount(0);
         }
       } catch (error) {

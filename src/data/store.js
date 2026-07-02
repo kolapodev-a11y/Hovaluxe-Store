@@ -1,5 +1,5 @@
 export const brand = {
-  name: 'Hovaluxe',
+  name: 'Kunleluxe',
   tagline: 'Luxury scents for elevated daily rituals.',
   description: 'A premium fragrance storefront for perfumes, body sprays, roll-ons, diffusers, and humidifiers.',
 };
@@ -18,7 +18,7 @@ export const paymentMethods = ['WhatsApp', 'Flutterwave'];
 const svgToDataUri = (svg) => `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 
 export function createProductArtwork({
-  title = 'Hovaluxe',
+  title = 'Kunleluxe',
   subtitle = 'Luxury Scent',
   accentA = '#c7a45d',
   accentB = '#18b56a',
@@ -45,7 +45,7 @@ export function createProductArtwork({
       <circle cx="620" cy="180" r="170" fill="url(#glow)"/>
       <circle cx="180" cy="220" r="130" fill="${accentB}" opacity="0.08"/>
       <rect x="70" y="70" width="660" height="760" rx="34" fill="#11100f" stroke="#3b3329" stroke-width="3"/>
-      <text x="120" y="155" fill="#ecd79d" font-family="Georgia, serif" font-size="44" letter-spacing="7">HOVALUXE</text>
+      <text x="120" y="155" fill="#ecd79d" font-family="Georgia, serif" font-size="44" letter-spacing="7">KUNLELUXE</text>
       <text x="120" y="202" fill="#9b9078" font-family="Arial, sans-serif" font-size="22" letter-spacing="9">${subtitle.toUpperCase()}</text>
       <g transform="translate(160 250)">
         <rect x="108" y="10" width="164" height="56" rx="18" fill="#2e2619" stroke="#6d5b3b" stroke-width="3"/>
@@ -60,7 +60,7 @@ export function createProductArtwork({
         <ellipse cx="190" cy="560" rx="128" ry="26" fill="#000" opacity="0.28"/>
       </g>
       <text x="120" y="750" fill="#f5efe5" font-family="Arial, sans-serif" font-size="42" font-weight="700">${title}</text>
-      <text x="120" y="795" fill="#a39a8b" font-family="Arial, sans-serif" font-size="22">Luxury fragrance collection • Premium finish • Hovaluxe</text>
+      <text x="120" y="795" fill="#a39a8b" font-family="Arial, sans-serif" font-size="22">Luxury fragrance collection • Premium finish • Kunleluxe</text>
     </svg>
   `);
 }
@@ -80,7 +80,7 @@ export function getProductImages(product) {
 
   return [
     createProductArtwork({
-      title: product?.name || 'Hovaluxe',
+      title: product?.name || 'Kunleluxe',
       subtitle: product?.category || 'Luxury Scent',
       bottle: String(product?.name || 'LUXE').split(' ')[0].toUpperCase().slice(0, 8),
     }),

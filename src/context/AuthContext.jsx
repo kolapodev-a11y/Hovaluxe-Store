@@ -1,8 +1,8 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { isAdminRole, normalizeUserRole } from '../utils/auth';
 
-const AUTH_STORAGE_KEY = 'hovaluxe_auth_session';
-const AUTH_EVENT = 'hovaluxe-auth-changed';
+const AUTH_STORAGE_KEY = 'kunleluxe_auth_session';
+const AUTH_EVENT = 'kunleluxe-auth-changed';
 
 const AuthContext = createContext(null);
 

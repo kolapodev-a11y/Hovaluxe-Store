@@ -1,7 +1,7 @@
 import { createContext, useContext, useMemo } from 'react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 
-const WISHLIST_STORAGE_KEY = 'hovaluxe_wishlist';
+const WISHLIST_STORAGE_KEY = 'kunleluxe_wishlist';
 const WishlistContext = createContext(null);
 
 function normalizeWishlistItem(product = {}) {

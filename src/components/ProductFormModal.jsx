@@ -79,7 +79,7 @@ export function ProductFormModal({ open, onClose, onSave, product }) {
     event.preventDefault();
 
     const fallbackImage = createProductArtwork({
-      title: form.name || 'Hovaluxe',
+      title: form.name || 'Kunleluxe',
       subtitle: form.category || 'Luxury Scent',
       bottle: String(form.name || 'LUXE').split(' ')[0].toUpperCase().slice(0, 8),
     });

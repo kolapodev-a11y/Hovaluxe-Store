@@ -18,7 +18,7 @@ const categoryIcons = {
 
 export function CategoryStrip({ activeCategory, onChangeCategory }) {
   return (
-    <div className="flex flex-wrap justify-center gap-3">
+    <div className="flex flex-wrap justify-center gap-2.5 sm:gap-3">
       <FilterButton
         isActive={activeCategory === 'All'}
         onClick={() => onChangeCategory('All')}
@@ -45,13 +45,13 @@ function FilterButton({ children, isActive, onClick, icon: Icon }) {
     <button
       type="button"
       onClick={onClick}
-      className={`inline-flex items-center gap-2 rounded-full border px-4 py-2.5 text-sm transition ${
+      className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-2 text-xs transition sm:gap-2 sm:px-4 sm:text-sm ${
         isActive
-          ? 'border-[var(--gold)]/35 bg-[var(--gold)] text-[#11110f] shadow-[0_10px_24px_rgba(216,192,122,0.16)]'
+          ? 'border-[var(--gold)]/35 bg-[var(--gold)] text-[#11110f] shadow-[0_10px_24px_rgba(216,192,122,0.14)]'
           : 'border-[var(--line)] bg-white/5 text-[var(--text-secondary)] hover:border-[var(--gold)]/35 hover:text-[var(--text-primary)]'
       }`}
     >
-      {Icon ? <Icon size={15} /> : null}
+      {Icon ? <Icon size={14} /> : null}
       {children}
     </button>
   );

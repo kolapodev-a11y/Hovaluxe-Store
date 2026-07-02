@@ -1,5 +1,5 @@
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { Gem, Heart, LogOut, Menu, Shield, ShoppingBag, User, X } from 'lucide-react';
+import { Heart, LogOut, Menu, Shield, ShoppingBag, User, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { brand } from '../data/store';
 import { formatRoleLabel } from '../utils/auth';
@@ -52,14 +52,15 @@ export function Header({ cartCount, onCartOpen, showTransactionSection = false }
     <header className="sticky top-0 z-40 overflow-x-clip border-b border-[var(--line)] bg-[rgba(9,10,11,0.9)] backdrop-blur-xl">
       <div className="mx-auto flex max-w-7xl min-w-0 items-center justify-between gap-2 px-3 py-3 sm:gap-3 sm:px-4 md:px-6 lg:px-8">
         <Link to="/" className="flex min-w-0 flex-1 items-center gap-2.5 sm:gap-3 lg:flex-none">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[1.15rem] border border-[var(--gold)]/25 bg-[linear-gradient(135deg,#181613,#0c0c0d)] text-[var(--gold)] shadow-[0_0_30px_rgba(199,164,93,.16)] sm:h-11 sm:w-11">
-            <Gem size={18} className="sm:hidden" />
-            <Gem size={20} className="hidden sm:block" />
-          </div>
+          <img
+            src="/kunleluxe-logo.png"
+            alt={`${brand.name} logo`}
+            className="h-10 w-auto shrink-0 rounded-[0.9rem] object-contain sm:h-11"
+          />
           <div className="min-w-0">
             <p className="truncate font-display text-[1.45rem] leading-none text-[var(--text-primary)] sm:text-2xl">{brand.name}</p>
             <p className="mt-1 truncate text-[9px] uppercase tracking-[0.28em] text-[var(--text-secondary)] sm:text-[10px] sm:tracking-[0.34em]">
-              Luxury fragrance
+              Luxe fragrances
             </p>
           </div>
         </Link>

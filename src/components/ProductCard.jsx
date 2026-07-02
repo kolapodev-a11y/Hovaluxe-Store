@@ -5,7 +5,7 @@ import { formatPrice } from '../utils/format';
 import { buildProductPath, getProductImages } from '../data/store';
 import { useWishlist } from '../context/WishlistContext';
 
-const STOREFRONT_RETURN_STATE_KEY = 'hovaluxe_storefront_return';
+const STOREFRONT_RETURN_STATE_KEY = 'kunleluxe_storefront_return';
 
 export function ProductCard({
   product,
@@ -14,16 +14,12 @@ export function ProductCard({
   showWishlistToggle = false,
   showAddToCartButton = false,
   linkState,
-  priority = false,
 }) {
   const disabled = product.status === 'out-of-stock' || product.status === 'sold';
   const image = useMemo(() => getProductImages(product)[0], [product]);
   const productPath = useMemo(() => buildProductPath(product), [product]);
   const { isWishlisted, toggleWishlist } = useWishlist();
   const wishlisted = isWishlisted(product.id);
-  const imageSizes = compact
-    ? '(max-width: 640px) 240px, (max-width: 1024px) 250px, 260px'
-    : '(max-width: 768px) 50vw, (max-width: 1280px) 33vw, 25vw';
 
   const handleProductClick = (event) => {
     if (typeof window === 'undefined') return;
@@ -65,10 +61,8 @@ export function ProductCard({
           <img
             src={image}
             alt={product.name}
-            loading={priority ? 'eager' : 'lazy'}
-            fetchPriority={priority ? 'high' : 'auto'}
+            loading="lazy"
             decoding="async"
-            sizes={imageSizes}
             className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
           />
         </div>

@@ -64,6 +64,7 @@ const categoryCards = [
 ];
 
 const catalogSectionId = 'catalog';
+const featuredCollectionSectionId = 'collections';
 const STOREFRONT_RETURN_STATE_KEY = 'kunleluxe_storefront_return';
 
 const normalizePhoneNumber = (value = '') => String(value || '').replace(/[^\d]/g, '');
@@ -298,6 +299,10 @@ export function StorefrontPage() {
     scrollToSection(sectionId);
   };
 
+  const handleBrowseCollection = () => {
+    scrollToSection(featuredProducts.length ? featuredCollectionSectionId : catalogSectionId);
+  };
+
   const handleFooterCategoryClick = (categoryTitle) => {
     handleCatalogBrowse({ category: categoryTitle });
   };
@@ -411,6 +416,7 @@ export function StorefrontPage() {
         notice={config.heroNotice}
         cartCount={cartCount}
         onCartOpen={() => setCartOpen(true)}
+        onBrowseCollection={handleBrowseCollection}
       />
 
       {notice ? (
@@ -454,7 +460,7 @@ export function StorefrontPage() {
 
         {/* FEATURED COLLECTION - horizontal scrollable */}
         {featuredProducts.length > 0 ? (
-          <section id="collections" className="mx-auto max-w-7xl px-4 py-8 md:px-6 md:py-10 lg:px-8">
+          <section id={featuredCollectionSectionId} className="mx-auto max-w-7xl px-4 py-8 md:px-6 md:py-10 lg:px-8">
             <SectionTitle
               eyebrow="Featured"
               title="Featured collection"
@@ -479,7 +485,7 @@ export function StorefrontPage() {
                       compact
                       linkState={{
                         fromPath: '/',
-                        scrollTo: 'collections',
+                        scrollTo: featuredCollectionSectionId,
                         restoreCategory: 'All',
                         restoreSearch: '',
                       }}
@@ -753,12 +759,12 @@ function ContactLink({ icon, label, value, href }) {
     return <div className={classes}>{content}</div>;
   }
 
-  return (
-    <a
-      href={href}
-      className={classes}
-      {...(external ? { target: '_blank', rel: 'noreferrer' } : {})}
-    >
+  return external ? (
+    <a href={href} target="_blank" rel="noreferrer" className={classes}>
+      {content}
+    </a>
+  ) : (
+    <a href={href} className={classes}>
       {content}
     </a>
   );
@@ -766,16 +772,16 @@ function ContactLink({ icon, label, value, href }) {
 
 function TwitterIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="currentColor" className="h-[18px] w-[18px]" aria-hidden="true">
-      <path d="M18.901 2H22l-6.77 7.738L23 22h-6.109l-4.785-7.406L5.622 22H2.521l7.24-8.274L2 2h6.264l4.326 6.718L18.901 2Zm-1.071 18h1.689L7.347 3.894H5.535L17.83 20Z" />
+    <svg viewBox="0 0 24 24" aria-hidden="true" className="h-[18px] w-[18px] fill-current">
+      <path d="M18.9 2H22l-6.77 7.74L23 22h-6.53l-5.12-6.73L5.44 22H2.33l7.24-8.28L1 2h6.69l4.63 6.1L18.9 2Zm-1.15 18h1.72L6.75 3.9H4.9L17.75 20Z" />
     </svg>
   );
 }
 
 function WhatsAppIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="currentColor" className="h-[18px] w-[18px]" aria-hidden="true">
-      <path d="M19.05 4.91A9.82 9.82 0 0 0 12.04 2C6.55 2 2.08 6.47 2.08 11.96c0 1.75.46 3.47 1.33 4.98L2 22l5.21-1.37a9.9 9.9 0 0 0 4.83 1.24h.01c5.49 0 9.96-4.47 9.96-9.96 0-2.66-1.03-5.16-2.96-7ZM12.05 20.2h-.01a8.23 8.23 0 0 1-4.19-1.15l-.3-.18-3.09.81.82-3.02-.2-.31a8.2 8.2 0 0 1-1.26-4.39c0-4.54 3.69-8.23 8.24-8.23a8.18 8.18 0 0 1 5.84 2.42 8.17 8.17 0 0 1 2.4 5.81c0 4.54-3.69 8.24-8.23 8.24Zm4.51-6.17c-.25-.12-1.47-.73-1.69-.81-.23-.08-.39-.12-.56.12-.17.25-.64.81-.79.98-.15.17-.29.19-.54.06-.25-.12-1.04-.38-1.99-1.21-.74-.66-1.24-1.47-1.39-1.72-.15-.25-.02-.38.11-.51.11-.11.25-.29.38-.44.12-.15.17-.25.25-.42.08-.17.04-.31-.02-.44-.06-.12-.56-1.35-.77-1.85-.2-.48-.41-.42-.56-.43h-.48c-.17 0-.44.06-.67.31-.23.25-.87.85-.87 2.08s.89 2.41 1.01 2.58c.12.17 1.74 2.66 4.21 3.73.59.25 1.05.4 1.41.52.59.19 1.12.16 1.54.1.47-.07 1.47-.6 1.67-1.18.21-.58.21-1.08.15-1.18-.06-.11-.23-.17-.48-.29Z" />
+    <svg viewBox="0 0 24 24" aria-hidden="true" className="h-[18px] w-[18px] fill-current">
+      <path d="M20.52 3.48A11.85 11.85 0 0 0 12.07 0C5.55 0 .24 5.3.24 11.82c0 2.08.54 4.11 1.57 5.91L0 24l6.45-1.69a11.77 11.77 0 0 0 5.61 1.43h.01c6.52 0 11.83-5.3 11.83-11.82 0-3.16-1.23-6.12-3.38-8.44ZM12.07 21.7h-.01a9.84 9.84 0 0 1-5.02-1.37l-.36-.21-3.83 1 1.02-3.74-.24-.38a9.8 9.8 0 0 1-1.51-5.18c0-5.41 4.41-9.82 9.85-9.82 2.63 0 5.1 1.02 6.95 2.88a9.76 9.76 0 0 1 2.89 6.95c0 5.41-4.42 9.82-9.84 9.82Zm5.39-7.38c-.3-.15-1.75-.87-2.03-.97-.27-.1-.47-.15-.67.15s-.77.97-.94 1.17c-.17.2-.35.22-.64.07-.3-.15-1.25-.46-2.38-1.46-.88-.79-1.47-1.76-1.64-2.06-.17-.3-.02-.46.13-.61.14-.14.3-.35.45-.52.15-.17.2-.29.3-.49.1-.2.05-.37-.02-.52-.07-.15-.67-1.62-.91-2.22-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.01-1.04 2.46 0 1.45 1.07 2.86 1.22 3.06.15.2 2.08 3.18 5.03 4.46.7.3 1.25.48 1.68.61.71.22 1.36.19 1.87.12.57-.08 1.75-.72 2-1.41.25-.69.25-1.28.17-1.41-.07-.12-.27-.2-.57-.34Z" />
     </svg>
   );
 }

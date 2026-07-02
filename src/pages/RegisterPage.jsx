@@ -99,98 +99,78 @@ export function RegisterPage() {
 
   return (
     <div className="min-h-screen bg-[var(--bg)] px-4 py-8 text-[var(--text-primary)] md:px-6 lg:px-8">
-      <div className="mx-auto max-w-4xl rounded-[2rem] border border-[var(--line)] bg-[#0c0d0d] p-6 text-center shadow-[0_24px_90px_rgba(0,0,0,.48)] md:p-8">
+      <div className="mx-auto max-w-xl rounded-[2rem] border border-[var(--line)] bg-[#0c0d0d] p-6 text-center shadow-[0_24px_90px_rgba(0,0,0,.48)] md:p-8">
         <p className="text-xs uppercase tracking-[0.24em] text-[var(--accent-green)]">Create account</p>
         <h1 className="mt-3 font-display text-4xl text-[var(--text-primary)] md:text-5xl">Join Kunleluxe</h1>
-        <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-[var(--text-secondary)]">
-          Choose how you want to register. You can sign up with email and password or continue with Google for a faster account setup.
+        <p className="mx-auto mt-3 max-w-lg text-sm leading-6 text-[var(--text-secondary)]">
+          Create your account with email or continue with Google.
         </p>
 
         {resumeCheckout ? (
-          <div className="mx-auto mt-6 max-w-2xl rounded-2xl border border-[var(--gold)]/20 bg-[var(--gold)]/10 px-4 py-3 text-sm text-[var(--text-primary)]">
-            Create your account to continue to checkout. Visitors can browse products freely, but payment is available only after sign-in.
+          <div className="mx-auto mt-5 max-w-lg rounded-2xl border border-[var(--gold)]/20 bg-[var(--gold)]/10 px-4 py-3 text-sm text-[var(--text-primary)]">
+            Create an account to continue to checkout.
           </div>
         ) : null}
 
-        <div className="mx-auto mt-8 grid w-full max-w-2xl gap-3 sm:grid-cols-2">
-          <AuthOptionCard
-            title="Email"
-            description={emailEnabled ? 'Create an account with your name, email address, and password.' : 'Email sign-up is currently unavailable.'}
-            active={emailEnabled}
-          />
-          <AuthOptionCard
-            title="Google"
-            description={googleEnabled ? 'Use your Google account for a quicker sign-up.' : 'Google sign-up becomes available after Google is configured on the server.'}
-            active={googleEnabled}
-          />
-        </div>
+        <form className="mt-6 space-y-4 text-left" onSubmit={handleSubmit}>
+          <Field label="Full name">
+            <input
+              value={form.name}
+              onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))}
+              className="input-style"
+              placeholder="Adaeze Martins"
+              required
+            />
+          </Field>
+          <Field label="Email address">
+            <input
+              type="email"
+              value={form.email}
+              onChange={(event) => setForm((prev) => ({ ...prev, email: event.target.value }))}
+              className="input-style"
+              placeholder="you@example.com"
+              required
+            />
+          </Field>
+          <Field label="Password">
+            <input
+              type="password"
+              value={form.password}
+              onChange={(event) => setForm((prev) => ({ ...prev, password: event.target.value }))}
+              className="input-style"
+              placeholder="Minimum 6 characters"
+              minLength={6}
+              required
+            />
+          </Field>
 
-        <div className="mx-auto mt-8 w-full max-w-md text-left">
-          <p className="text-center text-xs uppercase tracking-[0.24em] text-[var(--text-muted)]">Continue with email</p>
-          <form className="mt-4 grid gap-4" onSubmit={handleSubmit}>
-            <label className="block space-y-2 text-left">
-              <span className="text-sm font-medium text-[var(--text-primary)]">Full name</span>
-              <input
-                value={form.name}
-                onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))}
-                className="input-style"
-                placeholder="Adaeze Martins"
-                required
-              />
-            </label>
-            <label className="block space-y-2 text-left">
-              <span className="text-sm font-medium text-[var(--text-primary)]">Email address</span>
-              <input
-                type="email"
-                value={form.email}
-                onChange={(event) => setForm((prev) => ({ ...prev, email: event.target.value }))}
-                className="input-style"
-                placeholder="you@example.com"
-                required
-              />
-            </label>
-            <label className="block space-y-2 text-left">
-              <span className="text-sm font-medium text-[var(--text-primary)]">Password</span>
-              <input
-                type="password"
-                value={form.password}
-                onChange={(event) => setForm((prev) => ({ ...prev, password: event.target.value }))}
-                className="input-style"
-                placeholder="Minimum 6 characters"
-                minLength={6}
-                required
-              />
-            </label>
+          {error ? <ErrorBanner message={error} /> : null}
 
-            {error ? <div className="rounded-2xl border border-rose-500/25 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">{error}</div> : null}
+          <button
+            type="submit"
+            disabled={busy || !emailEnabled}
+            className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[var(--gold)] px-5 py-3 text-sm font-semibold text-[#111] disabled:cursor-not-allowed disabled:opacity-70"
+          >
+            {busy ? <LoaderCircle size={16} className="animate-spin" /> : <ArrowRight size={16} />}
+            Create account with email
+          </button>
 
-            <button
-              type="submit"
-              disabled={busy || !emailEnabled}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[var(--gold)] px-5 py-3 text-sm font-semibold text-[#111] disabled:cursor-not-allowed disabled:opacity-70"
-            >
-              {busy ? <LoaderCircle size={16} className="animate-spin" /> : <ArrowRight size={16} />}
-              Create account with email
-            </button>
-          </form>
-        </div>
+          {!emailEnabled ? <MutedNotice message="Email sign-up is currently unavailable." /> : null}
+        </form>
 
-        <div className="mx-auto mt-8 w-full max-w-md">
-          <p className="text-center text-xs uppercase tracking-[0.24em] text-[var(--text-muted)]">Continue with Google</p>
+        <Divider label="or continue with Google" />
+
+        <div className="mt-5">
           {authProvidersLoaded ? (
             googleEnabled ? (
-              <div className="mt-4">
-                <GoogleAuthButton
-                  onCredential={handleGoogleLogin}
-                  className="flex justify-center"
-                  width={320}
-                  clientId={googleClientId}
-                />
-              </div>
+              <GoogleAuthButton
+                onCredential={handleGoogleLogin}
+                className="flex justify-center"
+                width={320}
+                clientId={googleClientId}
+              />
             ) : (
-              <div className="mt-4 rounded-2xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
-                Google sign-up is currently unavailable on the server. You can still create your account with email and password.
-              </div>
+              <MutedNotice message="Google sign-up is currently unavailable on the server." />
             )
           ) : null}
         </div>
@@ -212,15 +192,29 @@ export function RegisterPage() {
   );
 }
 
-function AuthOptionCard({ title, description, active }) {
+function Field({ label, children }) {
   return (
-    <div
-      className={`rounded-[1.4rem] border px-4 py-4 text-left transition ${
-        active ? 'border-[var(--gold)]/30 bg-[var(--gold)]/10' : 'border-[var(--line)] bg-white/[0.03]'
-      }`}
-    >
-      <p className="text-sm font-semibold text-[var(--text-primary)]">{title}</p>
-      <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">{description}</p>
+    <label className="block space-y-2 text-left">
+      <span className="text-sm font-medium text-[var(--text-primary)]">{label}</span>
+      {children}
+    </label>
+  );
+}
+
+function Divider({ label }) {
+  return (
+    <div className="mt-6 flex items-center gap-3">
+      <span className="h-px flex-1 bg-[var(--line)]" />
+      <span className="text-[11px] uppercase tracking-[0.24em] text-[var(--text-muted)]">{label}</span>
+      <span className="h-px flex-1 bg-[var(--line)]" />
     </div>
   );
+}
+
+function ErrorBanner({ message }) {
+  return <div className="rounded-2xl border border-rose-500/25 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">{message}</div>;
+}
+
+function MutedNotice({ message }) {
+  return <div className="rounded-2xl border border-[var(--line)] bg-white/[0.03] px-4 py-3 text-sm text-[var(--text-secondary)]">{message}</div>;
 }
